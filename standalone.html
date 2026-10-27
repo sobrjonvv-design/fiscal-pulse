@@ -11,7 +11,8 @@
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <!-- Global Real-Time Cloud MQTT WebSocket Broker -->
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -41,14 +42,14 @@
     body { background-color: #F7F4EB; color: #1E1E1E; }
   </style>
 </head>
-<body class="bg-[#F7F4EB] text-[#1E1E1E] antialiased">
+<body class="bg-[#F7F4EB] text-[#1E1E1E] antialiased selection:bg-[#E9C46A]">
   <div id="root"></div>
 
   <script type="text/babel">
     const { useState, useEffect, useMemo, useRef } = React;
 
     // ========================================================================
-    // 1. DATA: 4 REAL-WORLD COUNTRY CASES WITH 5 FISCAL YEARS EACH
+    // 1. DATA: 4 REAL-WORLD HISTORICAL CASES (5 ROUNDS EACH)
     // ========================================================================
     const COUNTRY_CASES = [
       {
@@ -58,57 +59,62 @@
         era: '1965–1970',
         subtitle: 'The Resource-Poor Start-up',
         currencySymbol: 'SGD ($M)',
-        briefing: 'Separated from Malaysia in 1965 with zero natural resources, 14% unemployment, and impending British base withdrawal (20% of GDP). Attract MNC FDI, build Jurong industrial port, and fund polytechnics without exhausting reserves.',
+        briefing: 'Separated from Malaysia in 1965 with zero natural resources, 14% unemployment, and impending British base withdrawal (20% of GDP). Attract multinational FDI, construct Jurong industrial port, and fund technical polytechnics without exhausting scarce treasury reserves.',
         initialStats: { year: 1965, round: 1, treasury: 500, initialTreasury: 500, gdp: 1000, gdpGrowth: 2.5, debtToGdp: 15.0, inflation: 1.5, unemployment: 14.0, approval: 62.0, budgetBalance: -15, complianceFactor: 0.94, baseInterestRate: 4.5, humanCapitalStock: 2.0 },
         defaultAllocations: { corporateTax: 24, incomeTax: 20, vat: 8, sovereignBorrowing: 35, infrastructure: 75, educationRd: 45, healthcareSocial: 30, industrialSubsidies: 35, debtServicing: 12 },
         rounds: [
           {
-            round: 1, fiscalYearLabel: '1965 (FY 1)', title: 'Separation & Malaysian Tariff Wall',
-            context: 'Kuala Lumpur cancels common market agreements and erects high tariffs on Singapore-assembled goods.',
+            round: 1, fiscalYearLabel: '1965 (FY 1)', title: 'Separation & Malaysian Tariff Wall Shock',
+            context: 'Kuala Lumpur cancels common market agreements and erects steep protective tariffs against Singapore-assembled goods. Entrepot merchants face catastrophic trade barriers.',
+            optimalOptionId: 'A',
             options: [
-              { id: 'A', label: 'Pioneer Industries Ordinance & 5-Year FDI Tax Holidays', description: 'Offer 5-year tax relief to export MNCs and allocate $40M to Economic Development Board to build Jurong factories.', rationale: 'Attracted Texas Instruments and Hewlett-Packard, creating thousands of factory jobs.', effects: { treasuryDelta: -40, gdpGrowthDelta: 3.2, unemploymentDelta: -1.8, humanCapitalDelta: 1.5, approvalDelta: 5.0 } },
-              { id: 'B', label: 'Retaliatory Import Tariffs on Regional Goods', description: 'Impose 30% countervailing tariffs to shelter domestic artisans and raise immediate customs cash.', rationale: 'Protected domestic workshops but sparked regional trade retaliation and higher consumer import prices.', effects: { treasuryDelta: 25, gdpGrowthDelta: -1.2, inflationDelta: 2.1, unemploymentDelta: 0.8, approvalDelta: -4.0 } },
-              { id: 'C', label: 'Emergency Cash Transfers to Unemployed Dockers', description: 'Issue universal $50M state relief subsidies to unemployed port laborers without industrial restructuring.', rationale: 'Boosted household consumption and short-term popularity, but drained scarce capital without generating productive assets.', effects: { treasuryDelta: -50, gdpGrowthDelta: 0.4, unemploymentDelta: -0.4, approvalDelta: 7.0 } }
+              { id: 'A', label: 'Pioneer Industries Ordinance & 5-Year FDI Tax Holidays', description: 'Offer 5-year corporate tax relief to global export MNCs and allocate $40M to Economic Development Board to bulldoze Jurong swamps.', rationale: 'Directly transformed Singapore into an export-led manufacturing powerhouse, attracting Texas Instruments and Hewlett-Packard.', effects: { treasuryDelta: -40, gdpGrowthDelta: 3.2, unemploymentDelta: -1.8, humanCapitalDelta: 1.5, approvalDelta: 5.0 } },
+              { id: 'B', label: 'Retaliatory Import Tariffs on Regional Goods', description: 'Impose 30% countervailing tariffs to shelter domestic workshops and raise immediate customs cash.', rationale: 'Suboptimal: Protected inefficient domestic workshops but triggered regional trade retaliation and higher consumer import prices.', effects: { treasuryDelta: 25, gdpGrowthDelta: -1.2, inflationDelta: 2.1, unemploymentDelta: 0.8, approvalDelta: -4.0 } },
+              { id: 'C', label: 'Emergency Consumption Subsidies to Unemployed Dockers', description: 'Issue universal $50M state relief subsidies to unemployed port laborers without industrial restructuring.', rationale: 'Suboptimal: Boosted short-term popularity, but drained scarce capital reserves without creating productive assets.', effects: { treasuryDelta: -50, gdpGrowthDelta: 0.4, unemploymentDelta: -0.4, approvalDelta: 7.0 } }
             ]
           },
           {
-            round: 2, fiscalYearLabel: '1966 (FY 2)', title: 'Jurong Deep-Water Port Expansion',
-            context: 'Jurong Industrial Estate requires deep-water berthing, bulk cargo conveyors, and worker housing.',
+            round: 2, fiscalYearLabel: '1966 (FY 2)', title: 'Jurong Deep-Water Port Expansion & CPF Mobilization',
+            context: 'The new Jurong Industrial Estate requires deep-water berthing, bulk cargo conveyors, and high-density worker housing estates.',
+            optimalOptionId: 'A',
             options: [
-              { id: 'A', label: 'Issue Local Infrastructure Bonds & Mobilize CPF Savings', description: 'Channel domestic retirement savings into HDB housing estates and port cranes, keeping foreign debt zero.', rationale: 'Created high-multiplier construction employment while providing workers with asset ownership.', effects: { treasuryDelta: -30, gdpGrowthDelta: 2.8, unemploymentDelta: -2.0, humanCapitalDelta: 1.8, approvalDelta: 6.0 } },
-              { id: 'B', label: 'High-Interest Foreign Sovereign Loan Syndication', description: 'Borrow $120M from European private bankers to outsource turnkey construction to foreign contractors.', rationale: 'Accelerated delivery but sharply raised sovereign debt servicing commitments.', effects: { treasuryDelta: 70, debtToGdpDelta: 8.5, gdpGrowthDelta: 1.6, approvalDelta: 1.0 } },
-              { id: 'C', label: 'Postpone Deep-Water Port Dredging to Balance Budget', description: 'Halt capital dredging and instruct foreign investors to lighter cargo from offshore roadsteads.', rationale: 'Preserved current cash balances but led Shell and Mobil to defer planned refinery expansions.', effects: { treasuryDelta: 35, gdpGrowthDelta: -2.2, unemploymentDelta: 1.4, approvalDelta: -6.0 } }
+              { id: 'A', label: 'Issue Local Infrastructure Bonds & Mobilize Central Provident Fund (CPF)', description: 'Channel domestic retirement savings into public housing estates and port cranes, keeping external foreign debt zero.', rationale: 'Created high-multiplier construction jobs while giving workers equity in national homeownership.', effects: { treasuryDelta: -30, gdpGrowthDelta: 2.8, unemploymentDelta: -2.0, humanCapitalDelta: 1.8, approvalDelta: 6.0 } },
+              { id: 'B', label: 'High-Interest Foreign Sovereign Loan Syndication', description: 'Borrow $120M from European private banks to outsource turnkey construction to foreign contractors.', rationale: 'Suboptimal: Accelerated delivery but sharply increased external debt service and foreign exchange risk.', effects: { treasuryDelta: 70, debtToGdpDelta: 8.5, gdpGrowthDelta: 1.6, approvalDelta: 1.0 } },
+              { id: 'C', label: 'Postpone Deep-Water Port Dredging to Balance Current Budget', description: 'Halt capital dredging and instruct foreign investors to lighter cargo from offshore roadsteads.', rationale: 'Suboptimal: Preserved short-term cash, but caused Shell and Mobil to defer planned refinery expansions.', effects: { treasuryDelta: 35, gdpGrowthDelta: -2.2, unemploymentDelta: 1.4, approvalDelta: -6.0 } }
             ]
           },
           {
             round: 3, fiscalYearLabel: '1967 (FY 3)', title: 'Sterling Devaluation & Independent Currency Board',
-            context: 'British pound sterling is devalued by 14.3%. Singapore must decide whether to peg or issue an independent dollar.',
+            context: 'The British pound sterling is suddenly devalued by 14.3%. Singapore must decide whether to peg to sterling or issue an independent currency.',
+            optimalOptionId: 'A',
             options: [
-              { id: 'A', label: 'Establish Currency Board with 100% External Asset Backing', description: 'Refuse to devalue against the US dollar; back every Singapore dollar 100% with foreign reserves.', rationale: 'Enforced strict monetary discipline, eliminated currency risk for foreign investors, and anchored price stability.', effects: { treasuryDelta: -25, gdpGrowthDelta: 2.1, inflationDelta: -1.2, approvalDelta: 4.0 } },
-              { id: 'B', label: 'Follow Sterling Down with a 15% Competitive Devaluation', description: 'Devalue the local currency to boost port labor cost competitiveness.', rationale: 'Made domestic labor cheap in foreign terms, but triggered immediate imported inflation on food and fuel.', effects: { treasuryDelta: 15, gdpGrowthDelta: 0.9, inflationDelta: 3.8, approvalDelta: -5.0 } },
-              { id: 'C', label: 'Central Bank with Monetized Treasury Overdraft Facility', description: 'Grant the treasury unrestricted legal authority to monetize fiscal deficits via central bank printing.', rationale: 'Provided unlimited domestic liquidity but spooked international financial institutions regarding inflation risk.', effects: { treasuryDelta: 60, inflationDelta: 6.5, gdpGrowthDelta: -1.0, approvalDelta: -8.0 } }
+              { id: 'A', label: 'Establish Currency Board with 100% External Asset Backing', description: 'Refuse to devalue against the US dollar; back every Singapore dollar 100% with foreign gold and currency reserves.', rationale: 'Enforced iron monetary discipline, eliminated foreign investor currency risk, and anchored long-term price stability.', effects: { treasuryDelta: -25, gdpGrowthDelta: 2.1, inflationDelta: -1.2, approvalDelta: 4.0 } },
+              { id: 'B', label: 'Follow Sterling Down with a 15% Competitive Devaluation', description: 'Devalue local currency to boost port labor cost competitiveness.', rationale: 'Suboptimal: Made labor temporarily cheap in foreign terms, but sparked immediate imported inflation on food and fuel.', effects: { treasuryDelta: 15, gdpGrowthDelta: 0.9, inflationDelta: 3.8, approvalDelta: -5.0 } },
+              { id: 'C', label: 'Establish Central Bank with Monetized Treasury Overdraft Facility', description: 'Grant the treasury unrestricted legal authority to monetize fiscal deficits via central bank printing.', rationale: 'Suboptimal: Unlimited liquidity, but alarmed international investors and created long-term inflation risk.', effects: { treasuryDelta: 60, inflationDelta: 6.5, gdpGrowthDelta: -1.0, approvalDelta: -8.0 } }
             ]
           },
           {
             round: 4, fiscalYearLabel: '1968 (FY 4)', title: 'British "East of Suez" Military Withdrawal Shock',
-            context: 'London announces complete withdrawal of all British military forces by 1971, threatening 20% of GDP.',
+            context: 'London announces the complete withdrawal of all British military bases by 1971, threatening 20% of GDP and 40,000 base jobs.',
+            optimalOptionId: 'A',
             options: [
-              { id: 'A', label: 'Enact Employment Act 1968 & Convert Naval Base to Sembawang Shipyard', description: 'Standardize working hours, curb wildcat industrial strikes, and commercialize Royal Navy ship repair yards.', rationale: 'Industrial disputes fell 90%, maritime repair boomed, and foreign investors gained confidence.', effects: { treasuryDelta: -35, gdpGrowthDelta: 3.6, unemploymentDelta: -2.8, humanCapitalDelta: 2.2, approvalDelta: 4.5 } },
-              { id: 'B', label: 'Subsidize Redundant Base Employees on Indefinite State Retainers', description: 'Absorb all 40,000 civilian base workers directly into the government civil service payroll.', rationale: 'Prevented political unrest and kept unemployment numbers low, but permanently bloated recurrent fiscal overhead.', effects: { treasuryDelta: -85, gdpGrowthDelta: -0.6, debtToGdpDelta: 6.0, unemploymentDelta: -1.2, approvalDelta: 3.0 } },
-              { id: 'C', label: 'Implement Strict Fiscal Austerity to Offset Lost Base Revenue', description: 'Slash infrastructure and public health spending by 40% to match the sudden drop in military base spending.', rationale: 'Preserved treasury capital, but the fiscal contraction deepened the recession.', effects: { treasuryDelta: 45, gdpGrowthDelta: -3.5, unemploymentDelta: 3.5, approvalDelta: -12.0 } }
+              { id: 'A', label: 'Enact Employment Act 1968 & Convert Naval Base to Commercial Shipyards', description: 'Standardize working hours, curb wildcat industrial strikes, and commercialize Royal Navy ship repair yards.', rationale: 'Industrial strikes dropped 90%, maritime ship repair boomed, and multinational manufacturers committed long-term.', effects: { treasuryDelta: -35, gdpGrowthDelta: 3.6, unemploymentDelta: -2.8, humanCapitalDelta: 2.2, approvalDelta: 4.5 } },
+              { id: 'B', label: 'Subsidize Redundant Base Employees on Indefinite State Retainers', description: 'Absorb all 40,000 civilian base workers directly into the government civil service payroll.', rationale: 'Suboptimal: Prevented social unrest, but permanently bloated public payrolls without building export capacity.', effects: { treasuryDelta: -85, gdpGrowthDelta: -0.6, debtToGdpDelta: 6.0, unemploymentDelta: -1.2, approvalDelta: 3.0 } },
+              { id: 'C', label: 'Implement Strict Fiscal Austerity to Offset Lost Base Revenue', description: 'Slash infrastructure and public health spending by 40% to match the sudden drop in military base spending.', rationale: 'Suboptimal: Preserved cash reserves, but the fiscal contraction deepened the recession and increased unemployment.', effects: { treasuryDelta: 45, gdpGrowthDelta: -3.5, unemploymentDelta: 3.5, approvalDelta: -12.0 } }
             ]
           },
           {
-            round: 5, fiscalYearLabel: '1969–1970 (FY 5)', title: 'Multinational Electronics Wave & Technical Institutes',
-            context: 'US semiconductor firms seek Asian assembly hubs, but Singapore faces severe technical labor shortages.',
+            round: 5, fiscalYearLabel: '1969–1970 (FY 5)', title: 'Multinational Electronics Wave & Technical Training Institutes',
+            context: 'US semiconductor pioneers seek Asian assembly and testing hubs, but Singapore faces acute shortages of skilled technicians and engineers.',
+            optimalOptionId: 'A',
             options: [
               { id: 'A', label: 'Co-Fund Joint Industry-State Technical Training Institutes', description: 'Partner with Philips, Rollei, and Tata to establish specialized technical polytechnics with state bursaries.', rationale: 'Permanently upgraded workforce skill density, transforming Singapore into Southeast Asia’s precision electronics leader.', effects: { treasuryDelta: -45, gdpGrowthDelta: 4.2, unemploymentDelta: -3.4, humanCapitalDelta: 4.0, approvalDelta: 8.0 } },
-              { id: 'B', label: 'Focus Exclusively on Low-Wage Unskilled Garment Assembly', description: 'Reject expensive STEM polytechnic investments and keep minimum wages depressed to attract textile factories.', rationale: 'Provided immediate manual jobs for uneducated workers, but left the economy vulnerable to low-cost regional competitors.', effects: { treasuryDelta: 10, gdpGrowthDelta: 1.1, unemploymentDelta: -1.5, humanCapitalDelta: -1.0, approvalDelta: -1.0 } },
-              { id: 'C', label: 'Impose Windfall Expatriate Payroll Tax on Multinational Factories', description: 'Levy a $500/month tax on every foreign engineer and executive working in Singapore industrial zones.', rationale: 'Generated quick tax cash for the treasury, but caused Texas Instruments to redirect major fab investments to Penang.', effects: { treasuryDelta: 35, gdpGrowthDelta: -2.4, unemploymentDelta: 1.2, approvalDelta: -5.0 } }
+              { id: 'B', label: 'Focus Exclusively on Low-Wage Unskilled Garment Assembly', description: 'Reject expensive STEM polytechnic investments and keep minimum wages depressed to attract textile factories.', rationale: 'Suboptimal: Provided immediate manual jobs, but trapped the economy in low-margin goods vulnerable to regional competitors.', effects: { treasuryDelta: 10, gdpGrowthDelta: 1.1, unemploymentDelta: -1.5, humanCapitalDelta: -1.0, approvalDelta: -1.0 } },
+              { id: 'C', label: 'Impose Windfall Expatriate Payroll Tax on Multinational Factories', description: 'Levy a $500/month tax on every foreign engineer and executive working in Singapore industrial zones.', rationale: 'Suboptimal: Quick tax cash for the treasury, but caused Texas Instruments to divert planned fabrication investments.', effects: { treasuryDelta: 35, gdpGrowthDelta: -2.4, unemploymentDelta: 1.2, approvalDelta: -5.0 } }
             ]
           }
         ],
-        historicalOutcome: { summary: 'Singapore quadrupled export manufacturing, slashed unemployment from 14% to 5.2%, and built a robust sovereign balance sheet anchored by CPF asset formation and EDB industrial estates.', gdp: 1850, gdpGrowth: 9.8, debtToGdp: 22.0, inflation: 2.1, unemployment: 5.2, treasury: 780, historicalCapitalTrajectory: [500, 540, 595, 660, 720, 780] }
+        historicalOutcome: { summary: 'Singapore quadrupled export manufacturing, slashed unemployment from 14% to 5.2%, and built a robust sovereign balance sheet anchored by CPF asset formation and EDB industrial estates.', gdp: 1850, gdpGrowth: 9.8, debtToGdp: 22.0, inflation: 2.1, unemployment: 5.2, treasury: 780 }
       },
       {
         id: 'norway_1975',
@@ -117,57 +123,62 @@
         era: '1975–1980',
         subtitle: 'Managing the Oil Boom',
         currencySymbol: 'NOK ($M)',
-        briefing: 'With Ekofisk oil pouring in, Norway faces "Dutch Disease": surging petrodollars threaten to inflate wages, appreciate the Krone, squeeze traditional manufacturing, and overheat the economy.',
+        briefing: 'With Ekofisk North Sea oil pouring in, Norway faces "Dutch Disease": surging petrodollars threaten to inflate wages, appreciate the Krone, squeeze traditional manufacturing (shipbuilding, pulp mills), and overheat the welfare state.',
         initialStats: { year: 1975, round: 1, treasury: 4200, initialTreasury: 4200, gdp: 15000, gdpGrowth: 4.8, debtToGdp: 28.0, inflation: 8.5, unemployment: 2.5, approval: 74.0, budgetBalance: 240, complianceFactor: 0.98, baseInterestRate: 5.5, humanCapitalStock: 3.5 },
         defaultAllocations: { corporateTax: 28, incomeTax: 35, vat: 20, sovereignBorrowing: 0, infrastructure: 750, educationRd: 680, healthcareSocial: 950, industrialSubsidies: 320, debtServicing: 210 },
         rounds: [
           {
-            round: 1, fiscalYearLabel: '1975 (FY 1)', title: 'Ekofisk Petrodollar Influx & Statoil State Participation',
-            context: 'Royalties pour into Oslo. International majors demand open exploration, while unions demand wage dividends.',
+            round: 1, fiscalYearLabel: '1975 (FY 1)', title: 'Ekofisk Petrodollar Influx & Statoil 78% Rent Tax',
+            context: 'Petroleum royalties pour into Oslo. International majors demand open exploration, while unions demand direct oil dividend wages.',
+            optimalOptionId: 'A',
             options: [
               { id: 'A', label: '78% Petroleum Rent Tax & 50% Statoil Equity Mandate', description: 'Capture economic rents for the treasury and mandate subsea tech transfer to Norwegian shipyards.', rationale: 'Established public ownership of hydrocarbon resources while insulating mainland Norway from cash shocks.', effects: { treasuryDelta: 380, gdpGrowthDelta: 1.4, humanCapitalDelta: 2.0, approvalDelta: 5.0 } },
-              { id: 'B', label: 'Pass-Through All Oil Revenues into Universal Household Tax Rebates', description: 'Cut income taxes to zero and mail oil checks to every citizen.', rationale: 'Popular, but triggered spending frenzy, sending consumer inflation past 14%.', effects: { treasuryDelta: -250, gdpGrowthDelta: 2.8, inflationDelta: 5.5, approvalDelta: 10.0 } },
-              { id: 'C', label: 'Nationalize All Offshore Rigs & Displace International Operators', description: 'Bar foreign oil majors and spend $600M from the treasury building domestic exploration capacity.', rationale: 'Delayed drilling operations by 3 years due to technology shortages.', effects: { treasuryDelta: -600, gdpGrowthDelta: -1.6, debtToGdpDelta: 4.0, approvalDelta: -4.0 } }
+              { id: 'B', label: 'Pass-Through All Oil Revenues into Universal Household Tax Rebates', description: 'Cut income taxes to zero and mail oil checks to every citizen.', rationale: 'Suboptimal: Popular, but triggered spending frenzy, sending consumer inflation past 14%.', effects: { treasuryDelta: -250, gdpGrowthDelta: 2.8, inflationDelta: 5.5, approvalDelta: 10.0 } },
+              { id: 'C', label: 'Nationalize All Offshore Rigs & Displace International Operators', description: 'Bar foreign oil majors and spend $600M from the treasury building domestic exploration capacity.', rationale: 'Suboptimal: Delayed drilling operations by 3 years due to technology shortages.', effects: { treasuryDelta: -600, gdpGrowthDelta: -1.6, debtToGdpDelta: 4.0, approvalDelta: -4.0 } }
             ]
           },
           {
             round: 2, fiscalYearLabel: '1976 (FY 2)', title: 'Dutch Disease & Traditional Export Squeeze',
             context: 'Norwegian mainland wage growth hits 16% as offshore platforms bid away engineers. Coastal shipbuilders face bankruptcy.',
+            optimalOptionId: 'A',
             options: [
               { id: 'A', label: 'Restrain Mainland Subsidies & Fund High-Tech Automation R&D', description: 'Refuse open-ended bailouts for obsolete factories; fund robotics and subsea engineering.', rationale: 'Forced traditional manufacturing to move up the value chain into high-margin subsea tech.', effects: { treasuryDelta: -120, gdpGrowthDelta: 1.8, inflationDelta: -1.8, humanCapitalDelta: 2.8, approvalDelta: 2.0 } },
-              { id: 'B', label: 'Blanket Operating Subsidies to All Uncompetitive Mainland Factories', description: 'Use petroleum tax windfalls to permanently subsidize unprofitable shipyards.', rationale: 'Preserved local community jobs, but locked labor into loss-making sectors.', effects: { treasuryDelta: -420, gdpGrowthDelta: 0.3, inflationDelta: 2.2, unemploymentDelta: -0.6, approvalDelta: 6.0 } },
-              { id: 'C', label: 'Devalue Krone by 12% to Protect Exporters', description: 'Artificially devalue the Krone in foreign exchange markets to maintain exporter margins.', rationale: 'Helped exporters briefly, but ignited a fierce wage-price spiral.', effects: { treasuryDelta: -50, gdpGrowthDelta: 0.8, inflationDelta: 4.2, approvalDelta: -3.0 } }
+              { id: 'B', label: 'Blanket Operating Subsidies to All Uncompetitive Mainland Factories', description: 'Use petroleum tax windfalls to permanently subsidize unprofitable shipyards.', rationale: 'Suboptimal: Preserved local community jobs, but locked labor into loss-making sectors.', effects: { treasuryDelta: -420, gdpGrowthDelta: 0.3, inflationDelta: 2.2, unemploymentDelta: -0.6, approvalDelta: 6.0 } },
+              { id: 'C', label: 'Devalue Krone by 12% to Protect Exporters', description: 'Artificially devalue the Krone in foreign exchange markets to maintain exporter margins.', rationale: 'Suboptimal: Helped exporters briefly, but ignited a fierce wage-price spiral.', effects: { treasuryDelta: -50, gdpGrowthDelta: 0.8, inflationDelta: 4.2, approvalDelta: -3.0 } }
             ]
           },
           {
             round: 3, fiscalYearLabel: '1977 (FY 3)', title: 'Domestic Credit Overheating & Property Boom',
             context: 'Bank lending expands 24%. Real estate in Oslo and Stavanger explodes, and CPI breaches 10.5%.',
+            optimalOptionId: 'A',
             options: [
               { id: 'A', label: 'Credit Controls, Bank Reserve Hikes & Fiscal Tightening', description: 'Impose strict lending ceilings, raise central bank rates to 8%, and trim public consumption growth.', rationale: 'Successfully cooled speculative property bubbles and brought credit expansion back in line with real productivity.', effects: { treasuryDelta: 180, gdpGrowthDelta: -0.9, inflationDelta: -3.2, approvalDelta: -4.0 } },
-              { id: 'B', label: 'Maintain Cheap Interest Rates & Double Public Construction Works', description: 'Build new fjord highways and community centers across all 19 counties.', rationale: 'Pushed domestic GDP to unsustainable capacity constraints, worsening severe labor shortages.', effects: { treasuryDelta: -340, gdpGrowthDelta: 2.4, inflationDelta: 4.8, unemploymentDelta: -0.8, approvalDelta: 5.0 } },
-              { id: 'C', label: 'Price Ceilings & Mandatory Retail Food Subsidies', description: 'Legislate legal price caps on milk, butter, and fish, compensating grocers from oil revenues.', rationale: 'Artificially suppressed the CPI index on paper, but created black markets and drained $280M annually in recurring subsidies.', effects: { treasuryDelta: -280, gdpGrowthDelta: -0.4, inflationDelta: -1.0, approvalDelta: 3.0 } }
+              { id: 'B', label: 'Maintain Cheap Interest Rates & Double Public Construction Works', description: 'Build new fjord highways and community centers across all 19 counties.', rationale: 'Suboptimal: Pushed domestic GDP to unsustainable capacity constraints, worsening severe labor shortages.', effects: { treasuryDelta: -340, gdpGrowthDelta: 2.4, inflationDelta: 4.8, unemploymentDelta: -0.8, approvalDelta: 5.0 } },
+              { id: 'C', label: 'Price Ceilings & Mandatory Retail Food Subsidies', description: 'Legislate legal price caps on milk, butter, and fish, compensating grocers from oil revenues.', rationale: 'Suboptimal: Artificially suppressed the CPI index on paper, but created black markets and drained $280M annually in recurring subsidies.', effects: { treasuryDelta: -280, gdpGrowthDelta: -0.4, inflationDelta: -1.0, approvalDelta: 3.0 } }
             ]
           },
           {
             round: 4, fiscalYearLabel: '1978 (FY 4)', title: 'The Kleppe Package & Tripartite Income Accord',
             context: 'Coordinated wage moderation is offered in exchange for tax relief and family allowances.',
+            optimalOptionId: 'A',
             options: [
               { id: 'A', label: 'Adopt Comprehensive Tripartite Solidarity Wage Accord', description: 'Trade moderate tax cuts and family benefits for an agreed 15-month statutory wage freeze.', rationale: 'Succeeded in breaking the wage-price spiral without triggering national strikes.', effects: { treasuryDelta: -90, gdpGrowthDelta: 2.2, inflationDelta: -4.0, unemploymentDelta: -0.3, approvalDelta: 7.0 } },
-              { id: 'B', label: 'Break Unions & Mandate Unilateral Public Sector Pay Cuts', description: 'Refuse tripartite negotiation; pass emergency decree cutting state salaries by 8%.', rationale: 'Triggered a paralyzed offshore logistics strike, shutting down Ekofisk drilling for two months.', effects: { treasuryDelta: -210, gdpGrowthDelta: -2.8, unemploymentDelta: 1.2, approvalDelta: -14.0 } },
-              { id: 'C', label: 'Concede Full 18% Union Wage Demand via Higher Deficits', description: 'Accede to all union wage demands and fund the public payroll through treasury reserves.', rationale: 'Preserved labor peace, but completely destroyed remaining mainland export cost competitiveness.', effects: { treasuryDelta: -380, gdpGrowthDelta: 0.5, inflationDelta: 5.0, approvalDelta: 4.0 } }
+              { id: 'B', label: 'Break Unions & Mandate Unilateral Public Sector Pay Cuts', description: 'Refuse tripartite negotiation; pass emergency decree cutting state salaries by 8%.', rationale: 'Suboptimal: Triggered a paralyzed offshore logistics strike, shutting down Ekofisk drilling for two months.', effects: { treasuryDelta: -210, gdpGrowthDelta: -2.8, unemploymentDelta: 1.2, approvalDelta: -14.0 } },
+              { id: 'C', label: 'Concede Full 18% Union Wage Demand via Higher Deficits', description: 'Accede to all union wage demands and fund the public payroll through treasury reserves.', rationale: 'Suboptimal: Preserved labor peace, but completely destroyed remaining mainland export cost competitiveness.', effects: { treasuryDelta: -380, gdpGrowthDelta: 0.5, inflationDelta: 5.0, approvalDelta: 4.0 } }
             ]
           },
           {
             round: 5, fiscalYearLabel: '1979–1980 (FY 5)', title: 'Second Oil Shock & Sovereign Wealth Fund Foundation',
             context: 'Iranian Revolution causes oil prices to double to $35/barrel. Norway receives an immense petrodollar flood.',
+            optimalOptionId: 'A',
             options: [
               { id: 'A', label: 'Sterilize Windfalls in Foreign Securities (Sovereign Wealth Precursor)', description: 'Mandate that 80% of surplus oil taxes be invested abroad outside Norway, capping domestic budget drawdown.', rationale: 'Foundational decision: prevented domestic overheating and birthed the world’s wealthiest sovereign pension fund.', effects: { treasuryDelta: 750, gdpGrowthDelta: 1.6, inflationDelta: -2.0, debtToGdpDelta: -5.0, approvalDelta: 8.0 } },
-              { id: 'B', label: 'Spend All Additional Windfalls on Massive Domestic Public Works', description: 'Fund high-speed rail lines, universal luxury public sports centers, and early retirement at age 55.', rationale: 'Created immense domestic political euphoria, but permanently locked the state budget into high recurring expenditures when oil prices collapsed in 1986.', effects: { treasuryDelta: -450, gdpGrowthDelta: 3.2, inflationDelta: 5.8, approvalDelta: 9.0 } },
-              { id: 'C', label: 'Cap Offshore Petroleum Production by 50% as Conservation Measure', description: 'Halt new drilling licenses and cap export volumes to keep hydrocarbons in the ground.', rationale: 'Conserved resources for future generations, but forfeited peak world market prices and slashed treasury revenues.', effects: { treasuryDelta: -320, gdpGrowthDelta: -1.8, unemploymentDelta: 1.0, approvalDelta: -6.0 } }
+              { id: 'B', label: 'Spend All Additional Windfalls on Massive Domestic Public Works', description: 'Fund high-speed rail lines, universal luxury public sports centers, and early retirement at age 55.', rationale: 'Suboptimal: Created immense domestic political euphoria, but permanently locked the state budget into high recurring expenditures when oil prices collapsed in 1986.', effects: { treasuryDelta: -450, gdpGrowthDelta: 3.2, inflationDelta: 5.8, approvalDelta: 9.0 } },
+              { id: 'C', label: 'Cap Offshore Petroleum Production by 50% as Conservation Measure', description: 'Halt new drilling licenses and cap export volumes to keep hydrocarbons in the ground.', rationale: 'Suboptimal: Conserved resources for future generations, but forfeited peak world market prices and slashed treasury revenues.', effects: { treasuryDelta: -320, gdpGrowthDelta: -1.8, unemploymentDelta: 1.0, approvalDelta: -6.0 } }
             ]
           }
         ],
-        historicalOutcome: { summary: 'Norway avoided Dutch Disease through wage discipline and the visionary decision to sterilize surplus petroleum revenues in foreign assets, preserving mainland manufacturing and laying the groundwork for the $1.6T Government Pension Fund Global.', gdp: 21500, gdpGrowth: 4.5, debtToGdp: 21.0, inflation: 4.8, unemployment: 1.9, treasury: 5850, historicalCapitalTrajectory: [4200, 4520, 4780, 5050, 5380, 5850] }
+        historicalOutcome: { summary: 'Norway avoided Dutch Disease through wage discipline and the visionary decision to sterilize surplus petroleum revenues in foreign assets, preserving mainland manufacturing and laying the groundwork for the $1.6T Government Pension Fund Global.', gdp: 21500, gdpGrowth: 4.5, debtToGdp: 21.0, inflation: 4.8, unemployment: 1.9, treasury: 5850 }
       },
       {
         id: 'greece_2009',
@@ -183,50 +194,55 @@
           {
             round: 1, fiscalYearLabel: '2009 (FY 1)', title: 'Deficit Revelation & Sovereign Bond Yield Spike',
             context: 'Greek sovereign bonds are downgraded to junk; yields surge past 11%.',
+            optimalOptionId: 'A',
             options: [
               { id: 'A', label: 'ELSTAT Reform + Digitize Tax Audits & Broaden Tax Base', description: 'Restore statistical transparency, launch bank cross-checks on tax evasion, and seek official EU/IMF bridge loans.', rationale: 'Attacked the root cause (tax evasion) without instantly crushing aggregate demand.', effects: { treasuryDelta: 850, complianceDelta: 0.08, gdpGrowthDelta: -1.4, debtToGdpDelta: 3.5, approvalDelta: -3.0 } },
-              { id: 'B', label: 'Front-Loaded Brutal Austerity: Slash Pensions & Spike VAT to 23%', description: 'Enact immediate across-the-board 20% spending cuts to appease bondholders without tax system overhaul.', rationale: 'Classic Keynesian austerity trap: GDP contracted 6%, causing Debt-to-GDP to paradoxically rise faster.', effects: { treasuryDelta: 350, gdpGrowthDelta: -5.8, unemploymentDelta: 4.2, debtToGdpDelta: 12.0, approvalDelta: -16.0 } },
-              { id: 'C', label: 'Unilateral Debt Moratorium & Reintroduce Drachma ("Grexit")', description: 'Repudiate foreign debt and leave the Eurozone overnight, printing domestic Drachmas.', rationale: 'Triggered bank runs and hyperinflation of imported essentials.', effects: { treasuryDelta: -250, gdpGrowthDelta: -9.5, inflationDelta: 16.0, debtToGdpDelta: -25.0, unemploymentDelta: 7.0, approvalDelta: -22.0 } }
+              { id: 'B', label: 'Front-Loaded Brutal Austerity: Slash Pensions & Spike VAT to 23%', description: 'Enact immediate across-the-board 20% spending cuts to appease bondholders without tax system overhaul.', rationale: 'Suboptimal: Classic Keynesian austerity trap: GDP contracted 6%, causing Debt-to-GDP to paradoxically rise faster.', effects: { treasuryDelta: 350, gdpGrowthDelta: -5.8, unemploymentDelta: 4.2, debtToGdpDelta: 12.0, approvalDelta: -16.0 } },
+              { id: 'C', label: 'Unilateral Debt Moratorium & Reintroduce Drachma ("Grexit")', description: 'Repudiate foreign debt and leave the Eurozone overnight, printing domestic Drachmas.', rationale: 'Suboptimal: Triggered bank runs and hyperinflation of imported essentials.', effects: { treasuryDelta: -250, gdpGrowthDelta: -9.5, inflationDelta: 16.0, debtToGdpDelta: -25.0, unemploymentDelta: 7.0, approvalDelta: -22.0 } }
             ]
           },
           {
             round: 2, fiscalYearLabel: '2010 (FY 2)', title: 'First EU/IMF Troika Memorandum ($110B Bailout)',
             context: 'Troika demands severe structural benchmarks in exchange for emergency loans.',
+            optimalOptionId: 'A',
             options: [
               { id: 'A', label: 'Sign Accord with Minimum Safety Nets & Business Deregulation', description: 'Accept emergency financing while cutting hospital procurement corruption and digitizing export paperwork.', rationale: 'Secured emergency financing while eradicating hospital procurement waste.', effects: { treasuryDelta: 920, gdpGrowthDelta: -2.1, complianceDelta: 0.06, unemploymentDelta: 2.2, approvalDelta: -5.0 } },
-              { id: 'B', label: 'Reject Bailout Conditions & Seek Bilateral Loans from Russia/China', description: 'Break off negotiations with Brussels and seek alternative sovereign financing abroad.', rationale: 'Bilateral partners refused without collateral, leaving the state within 14 days of payroll default.', effects: { treasuryDelta: -450, gdpGrowthDelta: -4.5, debtToGdpDelta: 8.0, approvalDelta: -10.0 } },
-              { id: 'C', label: 'Impose Retrospective Emergency Property Tax on Electric Bills', description: 'Tack emergency property levies onto household electricity bills, cutting power for non-payment.', rationale: 'Raised emergency liquidity fast, but inflicted immense suffering and sparked fierce social protests.', effects: { treasuryDelta: 650, gdpGrowthDelta: -3.8, approvalDelta: -18.0 } }
+              { id: 'B', label: 'Reject Bailout Conditions & Seek Bilateral Loans from Russia/China', description: 'Break off negotiations with Brussels and seek alternative sovereign financing abroad.', rationale: 'Suboptimal: Bilateral partners refused without collateral, leaving the state within 14 days of payroll default.', effects: { treasuryDelta: -450, gdpGrowthDelta: -4.5, debtToGdpDelta: 8.0, approvalDelta: -10.0 } },
+              { id: 'C', label: 'Impose Retrospective Emergency Property Tax on Electric Bills', description: 'Tack emergency property levies onto household electricity bills, cutting power for non-payment.', rationale: 'Suboptimal: Raised emergency liquidity fast, but inflicted immense suffering and sparked fierce social protests.', effects: { treasuryDelta: 650, gdpGrowthDelta: -3.8, approvalDelta: -18.0 } }
             ]
           },
           {
             round: 3, fiscalYearLabel: '2011 (FY 3)', title: 'PSI Sovereign Debt Haircut Negotiations',
             context: 'Debt-to-GDP reaches 170%. Private banks hold $206B of debt that cannot be repaid in full.',
+            optimalOptionId: 'A',
             options: [
               { id: 'A', label: 'Negotiate 53.5% PSI Haircut & Mandate Electronic POS Terminals', description: 'Enforce a 53.5% nominal haircut on private bondholders while requiring card payments in all shops.', rationale: 'Wiped out over $100B in sovereign debt obligations and revolutionized VAT compliance.', effects: { treasuryDelta: 1200, debtToGdpDelta: -32.0, complianceDelta: 0.12, gdpGrowthDelta: 1.2, approvalDelta: 5.0 } },
-              { id: 'B', label: 'Refuse PSI Restructuring & Pledge Ports/Islands at Full Par', description: 'Borrow more to pay private hedge funds 100 cents on the dollar, pledging national crown assets as collateral.', rationale: 'Entrenched the unsustainable debt overhang, guaranteeing a deeper second crisis 18 months later.', effects: { treasuryDelta: -800, debtToGdpDelta: 18.0, gdpGrowthDelta: -3.2, approvalDelta: -14.0 } },
-              { id: 'C', label: 'Confiscate 20% of Domestic Bank Deposits to Pay Creditors', description: 'Execute an internal "bail-in" seizing cash from domestic corporate and household bank accounts.', rationale: 'Crushed all domestic SME working capital, sparking an unprecedented wave of private enterprise bankruptcies.', effects: { treasuryDelta: 850, gdpGrowthDelta: -7.0, unemploymentDelta: 5.5, approvalDelta: -28.0 } }
+              { id: 'B', label: 'Refuse PSI Restructuring & Pledge Ports/Islands at Full Par', description: 'Borrow more to pay private hedge funds 100 cents on the dollar, pledging national crown assets as collateral.', rationale: 'Suboptimal: Entrenched the unsustainable debt overhang, guaranteeing a deeper second crisis 18 months later.', effects: { treasuryDelta: -800, debtToGdpDelta: 18.0, gdpGrowthDelta: -3.2, approvalDelta: -14.0 } },
+              { id: 'C', label: 'Confiscate 20% of Domestic Bank Deposits to Pay Creditors', description: 'Execute an internal "bail-in" seizing cash from domestic corporate and household bank accounts.', rationale: 'Suboptimal: Crushed all domestic SME working capital, sparking an unprecedented wave of private enterprise bankruptcies.', effects: { treasuryDelta: 850, gdpGrowthDelta: -7.0, unemploymentDelta: 5.5, approvalDelta: -28.0 } }
             ]
           },
           {
             round: 4, fiscalYearLabel: '2012 (FY 4)', title: 'Bank Recapitalization & Youth Unemployment Peak',
             context: 'Following PSI haircut, commercial banks lose capital. Youth unemployment surpasses 55%.',
+            optimalOptionId: 'A',
             options: [
               { id: 'A', label: 'Bank Recapitalization & EU Youth Tech Vouchers', description: 'Recapitalize systemic banks using dedicated ESM funds while deploying EU regional subsidies for youth apprenticeships.', rationale: 'Restored liquidity to domestic lenders and began checking brain drain.', effects: { treasuryDelta: 550, gdpGrowthDelta: 1.8, unemploymentDelta: -2.5, humanCapitalDelta: 2.2, approvalDelta: 6.0 } },
-              { id: 'B', label: 'Raise Statutory Corporate Income Tax to 42% on Surviving Firms', description: 'Hike tax rates on formal domestic corporations to plug remaining social security deficits.', rationale: 'Classic Laffer Curve disaster: hundreds of Greek companies relocated headquarters to Bulgaria and Cyprus overnight.', effects: { treasuryDelta: -250, complianceDelta: -0.09, gdpGrowthDelta: -2.8, unemploymentDelta: 1.8, approvalDelta: -9.0 } },
-              { id: 'C', label: 'Expand Public Bureaucracy Patronage via Emergency T-Bills', description: 'Issue short-term 9% T-bills to re-hire laid-off municipal clerks.', rationale: 'Sank the primary budget balance, jeopardizing official bailout disbursements.', effects: { treasuryDelta: -650, debtToGdpDelta: 6.5, gdpGrowthDelta: 0.4, approvalDelta: 3.0 } }
+              { id: 'B', label: 'Raise Statutory Corporate Income Tax to 42% on Surviving Firms', description: 'Hike tax rates on formal domestic corporations to plug remaining social security deficits.', rationale: 'Suboptimal: Classic Laffer Curve disaster: hundreds of Greek companies relocated headquarters to Bulgaria and Cyprus overnight.', effects: { treasuryDelta: -250, complianceDelta: -0.09, gdpGrowthDelta: -2.8, unemploymentDelta: 1.8, approvalDelta: -9.0 } },
+              { id: 'C', label: 'Expand Public Bureaucracy Patronage via Emergency T-Bills', description: 'Issue short-term 9% T-bills to re-hire laid-off municipal clerks.', rationale: 'Suboptimal: Sank the primary budget balance, jeopardizing official bailout disbursements.', effects: { treasuryDelta: -650, debtToGdpDelta: 6.5, gdpGrowthDelta: 0.4, approvalDelta: 3.0 } }
             ]
           },
           {
             round: 5, fiscalYearLabel: '2013–2014 (FY 5)', title: 'Primary Surplus Turnaround & Bond Market Return',
             context: 'The primary budget balance turns positive for the first time in a decade as tourism rebounds.',
+            optimalOptionId: 'A',
             options: [
               { id: 'A', label: 'Lock in Primary Surplus, Lower Labor Levies & Issue 5-Year Bond', description: 'Maintain fiscal discipline, lower employer social security levies to stimulate private hiring, and test debt markets.', rationale: 'Successfully sold $3B in 5-year bonds at 4.75%, ending market exile.', effects: { treasuryDelta: 680, gdpGrowthDelta: 2.6, debtToGdpDelta: -8.0, unemploymentDelta: -2.2, approvalDelta: 8.0 } },
-              { id: 'B', label: 'Disburse the Surplus as Pre-Election Civil Service Bonuses', description: 'Spend the entire newly achieved primary surplus on election-year bonuses and subsidies.', rationale: 'Reignited sovereign bond market anxiety that Greece was reverting to old clientelist fiscal habits.', effects: { treasuryDelta: -550, gdpGrowthDelta: 1.2, debtToGdpDelta: 4.0, approvalDelta: 6.0 } },
-              { id: 'C', label: 'Default on Troika Official Loans and Demand Debt Cancellation', description: 'Refuse to service European Stability Mechanism and IMF loans.', rationale: 'Triggered immediate threats of ECB liquidity cutoff to the banking system and renewed Grexit panic.', effects: { treasuryDelta: -950, gdpGrowthDelta: -5.2, unemploymentDelta: 3.5, approvalDelta: -15.0 } }
+              { id: 'B', label: 'Disburse the Surplus as Pre-Election Civil Service Bonuses', description: 'Spend the entire newly achieved primary surplus on election-year bonuses and subsidies.', rationale: 'Suboptimal: Reignited sovereign bond market anxiety that Greece was reverting to old clientelist fiscal habits.', effects: { treasuryDelta: -550, gdpGrowthDelta: 1.2, debtToGdpDelta: 4.0, approvalDelta: 6.0 } },
+              { id: 'C', label: 'Default on Troika Official Loans and Demand Debt Cancellation', description: 'Refuse to service European Stability Mechanism and IMF loans.', rationale: 'Suboptimal: Triggered immediate threats of ECB liquidity cutoff to the banking system and renewed Grexit panic.', effects: { treasuryDelta: -950, gdpGrowthDelta: -5.2, unemploymentDelta: 3.5, approvalDelta: -15.0 } }
             ]
           }
         ],
-        historicalOutcome: { summary: 'Greece endured a 26% GDP contraction and 27% unemployment, but the 2012 PSI debt haircut and electronic tax enforcement eventually secured sustainable primary surpluses.', gdp: 24500, gdpGrowth: 0.7, debtToGdp: 177.0, inflation: -0.9, unemployment: 25.8, treasury: 680, historicalCapitalTrajectory: [250, 180, 290, 410, 520, 680] }
+        historicalOutcome: { summary: 'Greece endured a 26% GDP contraction and 27% unemployment, but the 2012 PSI debt haircut and electronic tax enforcement eventually secured sustainable primary surpluses.', gdp: 24500, gdpGrowth: 0.7, debtToGdp: 177.0, inflation: -0.9, unemployment: 25.8, treasury: 680 }
       },
       {
         id: 'germany_1948',
@@ -242,50 +258,55 @@
           {
             round: 1, fiscalYearLabel: '1948 (FY 1)', title: 'Ludwig Erhard’s Bold Currency Reform & Deregulation',
             context: 'The Deutsche Mark replaces the Reichsmark. Erhard abolishes price controls and rationing overnight.',
+            optimalOptionId: 'A',
             options: [
               { id: 'A', label: 'Abolish Price Controls & Enforce Central Bank Discipline', description: 'Deregulate prices to allow market price discovery while Bank deutscher Länder holds money supply strictly constrained.', rationale: 'Foundational spark: shop windows filled overnight, black markets vanished, and output surged.', effects: { treasuryDelta: 160, gdpGrowthDelta: 5.2, inflationDelta: -2.5, unemploymentDelta: -1.8, complianceDelta: 0.08, approvalDelta: 8.0 } },
-              { id: 'B', label: 'Retain Wartime Price Ceilings & Ration Coupons', description: 'Keep strict government price controls in place and punish merchants charging higher market prices.', rationale: 'Prolonged goods shortages and kept industrial materials hoarded in barter networks.', effects: { treasuryDelta: -90, gdpGrowthDelta: -2.4, inflationDelta: 3.5, unemploymentDelta: 1.5, approvalDelta: -7.0 } },
-              { id: 'C', label: 'Print New Deutsche Marks Generously to Reimburse Savers', description: 'Issue new D-Marks 1:1 to compensate middle-class citizens whose lifetime Reichsmark savings were wiped out.', rationale: 'Ignited post-war hyperinflation panic, destroying domestic confidence in the new currency.', effects: { treasuryDelta: -250, inflationDelta: 12.0, gdpGrowthDelta: -1.2, approvalDelta: -11.0 } }
+              { id: 'B', label: 'Retain Wartime Price Ceilings & Ration Coupons', description: 'Keep strict government price controls in place and punish merchants charging higher market prices.', rationale: 'Suboptimal: Prolonged goods shortages and kept industrial materials hoarded in barter networks.', effects: { treasuryDelta: -90, gdpGrowthDelta: -2.4, inflationDelta: 3.5, unemploymentDelta: 1.5, approvalDelta: -7.0 } },
+              { id: 'C', label: 'Print New Deutsche Marks Generously to Reimburse Savers', description: 'Issue new D-Marks 1:1 to compensate middle-class citizens whose lifetime Reichsmark savings were wiped out.', rationale: 'Suboptimal: Ignited post-war hyperinflation panic, destroying domestic confidence in the new currency.', effects: { treasuryDelta: -250, inflationDelta: 12.0, gdpGrowthDelta: -1.2, approvalDelta: -11.0 } }
             ]
           },
           {
             round: 2, fiscalYearLabel: '1949 (FY 2)', title: 'Marshall Plan Counterpart Funds & KfW Bank',
             context: 'US Marshall Plan aid arrives. The new Federal Republic must structure how capital is deployed.',
+            optimalOptionId: 'A',
             options: [
               { id: 'A', label: 'Create KfW as Revolving Industrial Loan Fund', description: 'Channel ERP funds through KfW to finance bottleneck infrastructure: coal, electricity, rail, and Mittelstand machinery.', rationale: 'Created a multi-decade capital multiplier: loan repayments were continuously re-lent to expanding firms.', effects: { treasuryDelta: 240, gdpGrowthDelta: 4.4, unemploymentDelta: -2.2, humanCapitalDelta: 2.8, approvalDelta: 7.0 } },
-              { id: 'B', label: 'Spend Marshall Aid as One-Off Consumer Cash Bonuses', description: 'Disburse all incoming dollar aid as direct non-repayable household consumer grants.', rationale: 'Boosted immediate consumer happiness, but left power plants and coal mines crippled once aid expired.', effects: { treasuryDelta: -140, gdpGrowthDelta: 0.8, unemploymentDelta: -0.4, approvalDelta: 5.0 } },
-              { id: 'C', label: 'Nationalize Ruhr Heavy Industry Without Rebuilding Grid', description: 'Spend counterpart funds buying out private Ruhr coal and steel shareholders into state ownership.', rationale: 'Drained precious public capital into shareholder buyouts while failing to repair physical transport arteries.', effects: { treasuryDelta: -320, gdpGrowthDelta: -1.9, unemploymentDelta: 1.0, approvalDelta: -6.0 } }
+              { id: 'B', label: 'Spend Marshall Aid as One-Off Consumer Cash Bonuses', description: 'Disburse all incoming dollar aid as direct non-repayable household consumer grants.', rationale: 'Suboptimal: Boosted immediate consumer happiness, but left power plants and coal mines crippled once aid expired.', effects: { treasuryDelta: -140, gdpGrowthDelta: 0.8, unemploymentDelta: -0.4, approvalDelta: 5.0 } },
+              { id: 'C', label: 'Nationalize Ruhr Heavy Industry Without Rebuilding Grid', description: 'Spend counterpart funds buying out private Ruhr coal and steel shareholders into state ownership.', rationale: 'Suboptimal: Drained precious public capital into shareholder buyouts while failing to repair physical transport arteries.', effects: { treasuryDelta: -320, gdpGrowthDelta: -1.9, unemploymentDelta: 1.0, approvalDelta: -6.0 } }
             ]
           },
           {
             round: 3, fiscalYearLabel: '1950 (FY 3)', title: 'Integration of 10 Million Expellee Refugees',
             context: 'Ten million ethnic German refugees from Eastern Europe crowd bombed-out cities, straining social budgets.',
+            optimalOptionId: 'A',
             options: [
               { id: 'A', label: 'Equalization of Burdens Act & Social Housing Tax Credits', description: 'Levy a 50% capital levy on un-damaged real estate over 30 years to finance refugee housing and SME loans.', rationale: 'Masterpiece of social market policy: integrated 10 million workers and fueled a massive housing boom.', effects: { treasuryDelta: 180, gdpGrowthDelta: 4.8, unemploymentDelta: -3.0, humanCapitalDelta: 3.2, approvalDelta: 8.0 } },
-              { id: 'B', label: 'Encourage Mass Emigration of Refugees to Americas', description: 'Pay passage subsidies for young refugees to emigrate abroad to reduce domestic unemployment pressure.', rationale: 'Permanently surrendered millions of skilled craftsmen and engineers just as industry needed labor.', effects: { treasuryDelta: -110, gdpGrowthDelta: -1.5, unemploymentDelta: -1.8, humanCapitalDelta: -3.0, approvalDelta: -4.0 } },
-              { id: 'C', label: 'Confine Refugees to Permanent Rural Agricultural Enclaves', description: 'Ban refugees from moving to industrial cities and mandate agrarian self-sufficiency.', rationale: 'Created pockets of persistent rural poverty while Ruhr and Bavarian factories suffered acute worker shortages.', effects: { treasuryDelta: -180, gdpGrowthDelta: -0.8, unemploymentDelta: 2.1, approvalDelta: -8.0 } }
+              { id: 'B', label: 'Encourage Mass Emigration of Refugees to Americas', description: 'Pay passage subsidies for young refugees to emigrate abroad to reduce domestic unemployment pressure.', rationale: 'Suboptimal: Permanently surrendered millions of skilled craftsmen and engineers just as industry needed labor.', effects: { treasuryDelta: -110, gdpGrowthDelta: -1.5, unemploymentDelta: -1.8, humanCapitalDelta: -3.0, approvalDelta: -4.0 } },
+              { id: 'C', label: 'Confine Refugees to Permanent Rural Agricultural Enclaves', description: 'Ban refugees from moving to industrial cities and mandate agrarian self-sufficiency.', rationale: 'Suboptimal: Created pockets of persistent rural poverty while Ruhr and Bavarian factories suffered acute worker shortages.', effects: { treasuryDelta: -180, gdpGrowthDelta: -0.8, unemploymentDelta: 2.1, approvalDelta: -8.0 } }
             ]
           },
           {
             round: 4, fiscalYearLabel: '1951 (FY 4)', title: 'The "Korea Boom" Raw Material Shock',
             context: 'Korean War creates insatiable world demand for German machine tools, but raw material import costs surge.',
+            optimalOptionId: 'A',
             options: [
               { id: 'A', label: 'Accelerated Capital Depreciation & Dual-Apprenticeships', description: 'Allow firms to write off 100% of reinvested capital equipment from taxes, paired with vocational training.', rationale: 'Turned Germany into the precision machine workshop of Europe, flipping trade to a structural surplus.', effects: { treasuryDelta: 220, gdpGrowthDelta: 5.6, unemploymentDelta: -2.8, humanCapitalDelta: 3.5, approvalDelta: 7.5 } },
-              { id: 'B', label: 'Impose Export Embargoes to Satisfy Domestic Demand First', description: 'Ban machine tool exports to force domestic prices down.', rationale: 'Missed the greatest post-war global trade boom and alienated European trade partners.', effects: { treasuryDelta: -150, gdpGrowthDelta: -2.8, unemploymentDelta: 1.8, approvalDelta: -6.0 } },
-              { id: 'C', label: 'Print Central Bank Credit to Subsidize Raw Material Imports', description: 'Provide direct state cash subsidies to cover high international coal and copper prices.', rationale: 'Fueled domestic inflation and weakened the international value of the Deutsche Mark.', effects: { treasuryDelta: -260, inflationDelta: 5.2, gdpGrowthDelta: 0.6, approvalDelta: -5.0 } }
+              { id: 'B', label: 'Impose Export Embargoes to Satisfy Domestic Demand First', description: 'Ban machine tool exports to force domestic prices down.', rationale: 'Suboptimal: Missed the greatest post-war global trade boom and alienated European trade partners.', effects: { treasuryDelta: -150, gdpGrowthDelta: -2.8, unemploymentDelta: 1.8, approvalDelta: -6.0 } },
+              { id: 'C', label: 'Print Central Bank Credit to Subsidize Raw Material Imports', description: 'Provide direct state cash subsidies to cover high international coal and copper prices.', rationale: 'Suboptimal: Fueled domestic inflation and weakened the international value of the Deutsche Mark.', effects: { treasuryDelta: -260, inflationDelta: 5.2, gdpGrowthDelta: 0.6, approvalDelta: -5.0 } }
             ]
           },
           {
             round: 5, fiscalYearLabel: '1952–1953 (FY 5)', title: 'The 1953 London Debt Accord & Codetermination',
             context: 'Allied creditors demand settlement of pre-war Weimar debts totaling DM 30B.',
+            optimalOptionId: 'A',
             options: [
               { id: 'A', label: 'Sign London Debt Accord (50% Relief Tied to Trade Surplus) + Codetermination', description: 'Halve external debts with payments capped at 3% of export earnings; grant labor 50% board seats.', rationale: 'Restored AAA sovereign credit, cemented 40 years of industrial peace, and secured full employment.', effects: { treasuryDelta: 310, gdpGrowthDelta: 4.8, debtToGdpDelta: -12.0, inflationDelta: -1.8, unemploymentDelta: -2.4, approvalDelta: 9.0 } },
-              { id: 'B', label: 'Repudiate All Pre-1945 Debts and Walk Out of London', description: 'Refuse to recognize pre-war Weimar debts or pay single Pfennig to Allied bondholders.', rationale: 'Allied nations seized German ships in foreign ports and blocked international trade credit.', effects: { treasuryDelta: -190, gdpGrowthDelta: -4.2, unemploymentDelta: 3.0, approvalDelta: -12.0 } },
-              { id: 'C', label: 'Ban Labor Unions & Impose State Wage Decrees', description: 'Outlaw collective bargaining and suppress industrial codetermination by executive decree.', rationale: 'Triggered a paralyzed general strike across the entire Ruhr industrial heartland.', effects: { treasuryDelta: -280, gdpGrowthDelta: -3.6, unemploymentDelta: 2.2, approvalDelta: -18.0 } }
+              { id: 'B', label: 'Repudiate All Pre-1945 Debts and Walk Out of London', description: 'Refuse to recognize pre-war Weimar debts or pay single Pfennig to Allied bondholders.', rationale: 'Suboptimal: Allied nations seized German ships in foreign ports and blocked international trade credit.', effects: { treasuryDelta: -190, gdpGrowthDelta: -4.2, unemploymentDelta: 3.0, approvalDelta: -12.0 } },
+              { id: 'C', label: 'Ban Labor Unions & Impose State Wage Decrees', description: 'Outlaw collective bargaining and suppress industrial codetermination by executive decree.', rationale: 'Suboptimal: Triggered a paralyzed general strike across the entire Ruhr industrial heartland.', effects: { treasuryDelta: -280, gdpGrowthDelta: -3.6, unemploymentDelta: 2.2, approvalDelta: -18.0 } }
             ]
           }
         ],
-        historicalOutcome: { summary: 'Industrial output tripled, unemployment fell below 3.2%, and Germany became Europe’s primary export powerhouse.', gdp: 16800, gdpGrowth: 8.5, debtToGdp: 16.0, inflation: 1.8, unemployment: 3.2, treasury: 1850, historicalCapitalTrajectory: [800, 960, 1150, 1340, 1580, 1850] }
+        historicalOutcome: { summary: 'Industrial output tripled, unemployment fell below 3.2%, and Germany became Europe’s primary export powerhouse.', gdp: 16800, gdpGrowth: 8.5, debtToGdp: 16.0, inflation: 1.8, unemployment: 3.2, treasury: 1850 }
       }
     ];
 
@@ -396,7 +417,7 @@
       if (current.round >= 2) {
         delayedEndogenousBonus = Number((current.humanCapitalStock * 0.18).toFixed(1));
         if (delayedEndogenousBonus >= 0.6) {
-          explanations.push(`Endogenous Growth Lag: Past R&D and Education investments unlocked +${delayedEndogenousBonus.toFixed(1)}% productivity growth.`);
+          explanations.push(`Endogenous Growth Lag: Past R&D and Education investments yielded +${delayedEndogenousBonus.toFixed(1)}% productivity boost this year.`);
         }
       }
 
@@ -412,7 +433,7 @@
       const nextUnemployment = clamp(current.unemployment - (nextGdpGrowth - 2.8) * 0.45 + (shockEffect.unemploymentDelta || 0), 1.2, 35.0);
       const nextApproval = clamp(current.approval + ((healthShare + eduShare) * 100 - 8.0) * 1.2 - (alloc.incomeTax - 22) * 0.22 + (shockEffect.approvalDelta || 0), 5, 98);
 
-      explanations.push(`Historical Crisis Decision [${shockOption.id}]: ${shockOption.rationale}`);
+      explanations.push(`Crisis Policy Decision [${shockOption.id}]: ${shockOption.rationale}`);
 
       const nextState = {
         year: current.year + 1,
@@ -431,9 +452,7 @@
         humanCapitalStock: nextHumanCapitalStock,
       };
 
-      // 0 - 100 score
-      const capRatio = nextTreasury / current.initialTreasury;
-      const score = Math.round(clamp(40 + capRatio * 25 + (100 - nextDebtToGdp) * 0.2 + nextGdpGrowth * 2.5 - Math.abs(nextInflation - 2.5) * 2, 10, 100));
+      const capitalGrowthPct = Number((((nextTreasury - current.initialTreasury) / current.initialTreasury) * 100).toFixed(1));
 
       return {
         nextState,
@@ -442,66 +461,104 @@
         fiscalBalance: structuralFiscalBalance,
         capitalDelta,
         capitalDeltaPct,
+        capitalGrowthPct,
         fiscalStatus,
-        score,
         explanations
       };
     }
 
     // ========================================================================
-    // 3. MAIN REACT MULTIPLAYER COMPONENT
+    // 3. MAIN REACT COMPONENT WITH REAL-TIME CLOUD SYNC & SCORING
     // ========================================================================
     function App() {
-      // My unique client ID
       const [myId] = useState(() => 'team_' + Math.random().toString(36).substr(2, 6));
       const [viewMode, setViewMode] = useState('LOBBY');
       const [roomCode, setRoomCode] = useState('482-910');
-      const [teamName, setTeamName] = useState('Команда 1: Минфин');
+      const [teamName, setTeamName] = useState('Team Alpha: Treasury');
       const [selectedCaseId, setSelectedCaseId] = useState('singapore_1965');
       const [selectedCase, setSelectedCase] = useState(COUNTRY_CASES[0]);
 
-      // Simulation State
+      // Simulation States
       const [currentStats, setCurrentStats] = useState(COUNTRY_CASES[0].initialStats);
       const [history, setHistory] = useState([COUNTRY_CASES[0].initialStats]);
       const [allocations, setAllocations] = useState(COUNTRY_CASES[0].defaultAllocations);
       const [selectedShockId, setSelectedShockId] = useState('A');
       const [lastRoundExplanations, setLastRoundExplanations] = useState([]);
+      const [wasLastOptimal, setWasLastOptimal] = useState(true);
+
+      // Scoring: Count of Optimal / Correct Policy Decisions (0 to 5)
+      const [correctAnswersCount, setCorrectAnswersCount] = useState(0);
 
       // Shared Cohort Teams Dictionary
       const [teamsMap, setTeamsMap] = useState({});
+      const [cloudConnected, setCloudConnected] = useState(false);
 
       const currentShock = selectedCase.rounds[Math.min(currentStats.round - 1, selectedCase.rounds.length - 1)];
       const preview = useMemo(() => calculateBudgetPreview(currentStats, allocations), [currentStats, allocations]);
 
-      // BroadcastChannel Ref
+      const mqttClientRef = useRef(null);
       const bcRef = useRef(null);
 
-      // --- MULTIPLAYER REAL-TIME SYNC ---
+      // --- GLOBAL REAL-TIME CLOUD MQTT & BROADCASTCHANNEL SYNC ---
       useEffect(() => {
-        const cleanRoom = (roomCode || '482-910').trim().toUpperCase();
-        const channelName = `fp_sync_channel_${cleanRoom}`;
+        const cleanRoom = (roomCode || '482-910').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+        const mqttTopic = `fiscal_pulse_v3/room_${cleanRoom}`;
         const storageKey = `fp_teams_storage_${cleanRoom}`;
 
-        // Load existing teams from localStorage
+        // 1. Load LocalStorage Cache
         try {
-          const saved = localStorage.getItem(storageKey);
-          if (saved) {
-            setTeamsMap(JSON.parse(saved));
+          const cached = localStorage.getItem(storageKey);
+          if (cached) {
+            setTeamsMap(JSON.parse(cached));
           }
         } catch (e) {}
 
-        // Setup BroadcastChannel
+        // 2. Setup BroadcastChannel for Same-Browser Tabs
         try {
-          bcRef.current = new BroadcastChannel(channelName);
+          bcRef.current = new BroadcastChannel(`fp_bc_${cleanRoom}`);
           bcRef.current.onmessage = (event) => {
-            if (!event.data) return;
-            handleIncomingSync(event.data);
+            if (event.data && event.data.type === 'TEAM_SYNC') {
+              handleNewTeamData(event.data.team);
+            }
           };
+        } catch (e) {}
+
+        // 3. Connect to Global Free Public HiveMQ WebSocket Broker
+        try {
+          if (window.mqtt) {
+            const client = window.mqtt.connect('wss://broker.hivemq.com:8884/mqtt', {
+              clientId: 'fp_' + myId + '_' + Math.random().toString(16).substr(2, 6),
+              clean: true,
+              keepalive: 30,
+              reconnectPeriod: 2500,
+            });
+
+            mqttClientRef.current = client;
+
+            client.on('connect', () => {
+              setCloudConnected(true);
+              client.subscribe(mqttTopic, { qos: 0 });
+              // Announce presence immediately
+              sendHeartbeat();
+            });
+
+            client.on('message', (topic, payload) => {
+              try {
+                const parsed = JSON.parse(payload.toString());
+                if (parsed.type === 'TEAM_SYNC' && parsed.team) {
+                  handleNewTeamData(parsed.team);
+                }
+              } catch (err) {}
+            });
+
+            client.on('offline', () => setCloudConnected(false));
+            client.on('error', () => setCloudConnected(false));
+          }
         } catch (e) {
-          console.warn('BroadcastChannel not supported', e);
+          console.warn('MQTT connection error:', e);
         }
 
-        // Setup Storage Event Listener (for cross-window sync)
+        // 4. Cross-Window LocalStorage Event Listener
         const handleStorage = (e) => {
           if (e.key === storageKey && e.newValue) {
             try {
@@ -513,106 +570,135 @@
 
         return () => {
           if (bcRef.current) bcRef.current.close();
+          if (mqttClientRef.current) mqttClientRef.current.end(true);
           window.removeEventListener('storage', handleStorage);
         };
-      }, [roomCode]);
+      }, [roomCode, myId]);
 
-      // Broadcast helper
-      const broadcastTeamState = (updatedTeam) => {
-        const cleanRoom = (roomCode || '482-910').trim().toUpperCase();
+      // Helper to merge team data
+      const handleNewTeamData = (team) => {
+        setTeamsMap((prev) => {
+          const next = { ...prev, [team.id]: team };
+          const cleanRoom = (roomCode || '482-910').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+          try {
+            localStorage.setItem(`fp_teams_storage_${cleanRoom}`, JSON.stringify(next));
+          } catch (e) {}
+          return next;
+        });
+      };
+
+      // Broadcast state to all channels (MQTT + BroadcastChannel + LocalStorage)
+      const broadcastTeamState = (teamObj) => {
+        const cleanRoom = (roomCode || '482-910').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+        const mqttTopic = `fiscal_pulse_v3/room_${cleanRoom}`;
         const storageKey = `fp_teams_storage_${cleanRoom}`;
 
+        // Local state
         setTeamsMap((prev) => {
-          const next = { ...prev, [updatedTeam.id]: updatedTeam };
+          const next = { ...prev, [teamObj.id]: teamObj };
           try {
             localStorage.setItem(storageKey, JSON.stringify(next));
           } catch (e) {}
           return next;
         });
 
+        // BroadcastChannel
         if (bcRef.current) {
           try {
-            bcRef.current.postMessage({ type: 'TEAM_UPDATE', team: updatedTeam });
+            bcRef.current.postMessage({ type: 'TEAM_SYNC', team: teamObj });
+          } catch (e) {}
+        }
+
+        // MQTT Cloud WebSocket
+        if (mqttClientRef.current && mqttClientRef.current.connected) {
+          try {
+            mqttClientRef.current.publish(mqttTopic, JSON.stringify({ type: 'TEAM_SYNC', team: teamObj }));
           } catch (e) {}
         }
       };
 
-      const handleIncomingSync = (msg) => {
-        if (msg.type === 'TEAM_UPDATE' && msg.team) {
-          setTeamsMap((prev) => {
-            const next = { ...prev, [msg.team.id]: msg.team };
-            const cleanRoom = (roomCode || '482-910').trim().toUpperCase();
-            try {
-              localStorage.setItem(`fp_teams_storage_${cleanRoom}`, JSON.stringify(next));
-            } catch (e) {}
-            return next;
-          });
-        }
-      };
-
-      // Announce Presence on Name or Room Change
-      useEffect(() => {
+      const sendHeartbeat = () => {
+        const growth = Number((((currentStats.treasury - currentStats.initialTreasury) / currentStats.initialTreasury) * 100).toFixed(1));
         const myTeam = {
           id: myId,
-          name: teamName || 'Анонимная команда',
+          name: teamName || 'Unnamed Team',
           roomCode: (roomCode || '482-910').trim().toUpperCase(),
+          countryName: selectedCase.name,
           round: currentStats.round,
           treasury: currentStats.treasury,
-          gdp: currentStats.gdp,
+          capitalGrowthPct: growth,
+          correctAnswers: correctAnswersCount,
           debtToGdp: currentStats.debtToGdp,
-          score: 70,
+          gdpGrowth: currentStats.gdpGrowth,
           status: currentStats.budgetBalance >= 0 ? 'SURPLUS' : 'DEFICIT',
           lastActive: Date.now()
         };
         broadcastTeamState(myTeam);
-      }, [teamName, roomCode]);
+      };
 
-      // Start Simulation
+      // Periodic heartbeat sync
+      useEffect(() => {
+        sendHeartbeat();
+        const interval = setInterval(sendHeartbeat, 5000);
+        return () => clearInterval(interval);
+      }, [teamName, roomCode, currentStats, correctAnswersCount, selectedCase]);
+
+      // Start Game
       const startGame = (cCase) => {
         setSelectedCase(cCase);
         setCurrentStats(cCase.initialStats);
         setHistory([cCase.initialStats]);
         setAllocations(cCase.defaultAllocations);
         setSelectedShockId('A');
+        setCorrectAnswersCount(0);
 
-        const updatedMe = {
+        const myTeam = {
           id: myId,
-          name: teamName || 'Анонимная команда',
+          name: teamName || 'Unnamed Team',
           roomCode: (roomCode || '482-910').trim().toUpperCase(),
+          countryName: cCase.name,
           round: 1,
           treasury: cCase.initialStats.treasury,
-          gdp: cCase.initialStats.gdp,
+          capitalGrowthPct: 0,
+          correctAnswers: 0,
           debtToGdp: cCase.initialStats.debtToGdp,
-          score: 70,
+          gdpGrowth: cCase.initialStats.gdpGrowth,
           status: cCase.initialStats.budgetBalance >= 0 ? 'SURPLUS' : 'DEFICIT',
           lastActive: Date.now()
         };
-        broadcastTeamState(updatedMe);
+        broadcastTeamState(myTeam);
         setViewMode('DASHBOARD');
       };
 
-      // Execute Fiscal Year
+      // Execute Fiscal Round & Check Optimal Policy Answer
       const handleConfirmShock = () => {
         const option = currentShock.options.find(o => o.id === selectedShockId) || currentShock.options[0];
-        const res = simulateFiscalRound(currentStats, allocations, option);
+        const isOptimal = selectedShockId === currentShock.optimalOptionId;
+        const newCorrectCount = isOptimal ? correctAnswersCount + 1 : correctAnswersCount;
 
+        setWasLastOptimal(isOptimal);
+        setCorrectAnswersCount(newCorrectCount);
+
+        const res = simulateFiscalRound(currentStats, allocations, option);
         setCurrentStats(res.nextState);
         setHistory(prev => [...prev, res.nextState]);
         setLastRoundExplanations(res.explanations);
 
-        const updatedMe = {
+        const myTeam = {
           id: myId,
-          name: teamName || 'Анонимная команда',
+          name: teamName || 'Unnamed Team',
           roomCode: (roomCode || '482-910').trim().toUpperCase(),
+          countryName: selectedCase.name,
           round: res.nextState.round,
           treasury: res.nextState.treasury,
-          gdp: res.nextState.gdp,
+          capitalGrowthPct: res.capitalGrowthPct,
+          correctAnswers: newCorrectCount,
           debtToGdp: res.nextState.debtToGdp,
-          score: res.score,
+          gdpGrowth: res.nextState.gdpGrowth,
           status: res.fiscalStatus,
           lastActive: Date.now()
         };
-        broadcastTeamState(updatedMe);
+        broadcastTeamState(myTeam);
         setViewMode('ROUND_FEEDBACK');
       };
 
@@ -625,50 +711,75 @@
         }
       };
 
-      // Sorted Leaderboard List
+      // Leaderboard Ranking: 1) Correct Optimal Decisions (out of 5), 2) Capital Growth %, 3) Debt Control
       const sortedTeams = useMemo(() => {
         const list = Object.values(teamsMap);
         if (list.length === 0) {
+          const growth = Number((((currentStats.treasury - currentStats.initialTreasury) / currentStats.initialTreasury) * 100).toFixed(1));
           return [{
             id: myId,
             name: teamName,
+            countryName: selectedCase.name,
             round: currentStats.round,
             treasury: currentStats.treasury,
+            capitalGrowthPct: growth,
+            correctAnswers: correctAnswersCount,
             debtToGdp: currentStats.debtToGdp,
-            score: 70,
             status: 'SURPLUS'
           }];
         }
-        return list.sort((a, b) => (b.score || 0) - (a.score || 0) || (b.treasury || 0) - (a.treasury || 0));
-      }, [teamsMap, myId, teamName, currentStats]);
+        return list.sort((a, b) => {
+          if ((b.correctAnswers || 0) !== (a.correctAnswers || 0)) {
+            return (b.correctAnswers || 0) - (a.correctAnswers || 0);
+          }
+          return (b.capitalGrowthPct || 0) - (a.capitalGrowthPct || 0);
+        });
+      }, [teamsMap, myId, teamName, currentStats, correctAnswersCount, selectedCase]);
+
+      // Letter grade based on Correct Decisions
+      const getGrade = (correct) => {
+        if (correct >= 5) return 'A+ (Distinguished Statesperson)';
+        if (correct === 4) return 'A (Master Macroeconomist)';
+        if (correct === 3) return 'B (Competent Technocrat)';
+        if (correct === 2) return 'C (Fiscal Muddler)';
+        return 'D (Sovereign Distress)';
+      };
 
       // ======================================================================
-      // RENDER: LOBBY VIEW
+      // RENDER: LOBBY VIEW (100% STRICT ENGLISH)
       // ======================================================================
       if (viewMode === 'LOBBY') {
         return (
           <div className="max-w-5xl mx-auto p-4 md:p-6 space-y-6">
             <div className="border border-[#1E1E1E] bg-[#FFFFFF] p-6 shadow-brutal flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               <div>
-                <span className="bg-[#E04F3E] text-white px-2 py-0.5 text-xs font-mono font-bold uppercase tracking-widest">
-                  Classroom Real-Time Multiplayer
-                </span>
-                <h1 className="text-2xl md:text-3xl font-extrabold uppercase mt-2">
+                <div className="flex items-center gap-2">
+                  <span className="bg-[#E04F3E] text-white px-2 py-0.5 text-xs font-mono font-bold uppercase tracking-widest">
+                    Classroom Real-Time Multiplayer
+                  </span>
+                  <span className={`text-[10px] font-mono px-2 py-0.5 border font-bold flex items-center gap-1 ${
+                    cloudConnected ? 'bg-emerald-50 text-emerald-800 border-emerald-600' : 'bg-amber-50 text-amber-800 border-amber-600'
+                  }`}>
+                    <span className={`w-2 h-2 rounded-full ${cloudConnected ? 'bg-emerald-600 animate-pulse' : 'bg-amber-600'}`} />
+                    {cloudConnected ? 'Cloud Online Sync Active' : 'Connecting Cloud Broker...'}
+                  </span>
+                </div>
+                <h1 className="text-2xl md:text-3xl font-extrabold uppercase mt-2 text-[#1E1E1E]">
                   Fiscal Pulse: <span className="text-[#2A9D8F]">National Budget Simulator</span>
                 </h1>
                 <p className="text-xs text-[#264653] font-mono mt-1">
-                  Подключитесь к одной комнате с другими командами и соревнуйтесь в реальном времени!
+                  Connect all classroom teams to the same Room Code. Fairly ranked by optimal economic choices across 5 fiscal years!
                 </p>
               </div>
 
               {/* Room Code Card */}
               <div className="border border-[#1E1E1E] bg-[#F7F4EB] p-3 text-right shrink-0 w-full md:w-auto">
-                <div className="text-[10px] font-mono uppercase text-[#264653] font-bold">Код комнаты (Room Code)</div>
+                <div className="text-[10px] font-mono uppercase text-[#264653] font-bold">Classroom Room Code</div>
                 <input
                   type="text"
                   value={roomCode}
                   onChange={(e) => setRoomCode(e.target.value)}
-                  className="bg-white border border-[#1E1E1E] px-3 py-1 font-mono text-xl font-bold tracking-widest text-center mt-1 w-36"
+                  className="bg-white border border-[#1E1E1E] px-3 py-1 font-mono text-xl font-bold tracking-widest text-center mt-1 w-36 uppercase focus:outline-none"
                   placeholder="482-910"
                 />
               </div>
@@ -691,27 +802,30 @@
                   <h3 className="text-lg font-bold uppercase mt-1 text-[#1E1E1E]">{c.name}: {c.subtitle}</h3>
                   <p className="text-xs text-[#264653] mt-2 leading-relaxed">{c.briefing}</p>
                   <div className="mt-4 pt-3 border-t border-[#1E1E1E] flex justify-between font-mono text-xs">
-                    <span>Казна: <strong className="text-[#2A9D8F]">${c.initialStats.treasury}M</strong></span>
-                    <span>ВВП: <strong>${c.initialStats.gdp}M</strong></span>
-                    <span>Долг: <strong className="text-[#E04F3E]">{c.initialStats.debtToGdp}%</strong></span>
+                    <span>Treasury: <strong className="text-[#2A9D8F]">${c.initialStats.treasury}M</strong></span>
+                    <span>GDP: <strong>${c.initialStats.gdp}M</strong></span>
+                    <span>Debt: <strong className="text-[#E04F3E]">{c.initialStats.debtToGdp}%</strong></span>
                   </div>
                 </div>
               ))}
             </div>
 
-            {/* Live Joined Teams Roster */}
+            {/* Live Connected Teams Roster */}
             <div className="border border-[#1E1E1E] bg-[#FFFFFF] p-5 shadow-brutal space-y-3">
               <div className="flex justify-between items-center border-b border-[#1E1E1E] pb-2">
                 <span className="font-mono font-bold text-xs uppercase text-[#1E1E1E]">
-                  🟢 Команды в комнате [{roomCode}]: ({sortedTeams.length})
+                  🟢 Connected Teams in Room [{roomCode}]: ({sortedTeams.length} Active)
                 </span>
-                <span className="text-[11px] font-mono text-[#264653]">Синхронизация активна</span>
+                <span className="text-[11px] font-mono text-[#264653]">Real-Time Cross-Browser Sync</span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 font-mono text-xs">
                 {sortedTeams.map((t, idx) => (
-                  <div key={t.id} className={`p-2 border border-[#1E1E1E] flex justify-between items-center ${t.id === myId ? 'bg-[#E9C46A]/20 ring-1 ring-[#1E1E1E]' : 'bg-[#F7F4EB]'}`}>
-                    <span>#{idx + 1} <strong>{t.name}</strong> {t.id === myId && '(Вы)'}</span>
-                    <span className="text-[10px] bg-[#1E1E1E] text-white px-1">Готов</span>
+                  <div key={t.id} className={`p-2.5 border border-[#1E1E1E] flex justify-between items-center ${t.id === myId ? 'bg-[#E9C46A]/25 ring-1 ring-[#1E1E1E]' : 'bg-[#F7F4EB]'}`}>
+                    <div>
+                      <div className="font-bold text-[#1E1E1E]">#{idx + 1} {t.name} {t.id === myId && '(You)'}</div>
+                      <div className="text-[10px] text-[#264653]">{t.countryName || 'Selected Case'}</div>
+                    </div>
+                    <span className="text-[10px] bg-[#1E1E1E] text-white px-1.5 py-0.5 uppercase font-bold">Ready</span>
                   </div>
                 ))}
               </div>
@@ -720,12 +834,12 @@
             {/* Team Name Input & Start Button */}
             <div className="border border-[#1E1E1E] bg-[#FFFFFF] p-4 flex flex-col sm:flex-row justify-between items-center gap-3 shadow-brutal">
               <div className="w-full sm:w-auto flex items-center gap-2">
-                <span className="font-mono text-xs font-bold text-[#1E1E1E]">Ваша команда:</span>
+                <span className="font-mono text-xs font-bold text-[#1E1E1E]">Your Team Name:</span>
                 <input
                   type="text"
                   value={teamName}
                   onChange={e => setTeamName(e.target.value)}
-                  placeholder="Введите название команды"
+                  placeholder="Enter Team Name"
                   className="border border-[#1E1E1E] px-3 py-1.5 text-xs font-mono w-64 font-bold focus:outline-none"
                 />
               </div>
@@ -733,7 +847,7 @@
                 onClick={() => startGame(COUNTRY_CASES.find(c => c.id === selectedCaseId) || COUNTRY_CASES[0])}
                 className="w-full sm:w-auto bg-[#1E1E1E] text-white font-mono font-bold text-xs uppercase px-8 py-2.5 shadow-brutal hover:bg-[#264653] transition"
               >
-                Начать финансовую симуляцию →
+                Start Fiscal Simulation →
               </button>
             </div>
           </div>
@@ -741,69 +855,93 @@
       }
 
       // ======================================================================
-      // RENDER: FINAL DEBRIEF & CLASSROOM PODIUM
+      // RENDER: FINAL ASSESSMENT & CLASSROOM PODIUM (100% STRICT ENGLISH)
       // ======================================================================
       if (viewMode === 'FINAL_DEBRIEF') {
         const hist = selectedCase.historicalOutcome;
+        const myGrowthPct = Number((((currentStats.treasury - currentStats.initialTreasury) / currentStats.initialTreasury) * 100).toFixed(1));
+
         return (
           <div className="max-w-5xl mx-auto p-4 md:p-6 space-y-6">
             <div className="border border-[#1E1E1E] bg-[#FFFFFF] p-6 shadow-brutal flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               <div>
-                <span className="bg-[#E04F3E] text-white px-2 py-0.5 text-xs font-mono font-bold uppercase">5 раундов завершены</span>
+                <span className="bg-[#E04F3E] text-white px-2 py-0.5 text-xs font-mono font-bold uppercase tracking-widest">
+                  5 Fiscal Years Concluded
+                </span>
                 <h1 className="text-2xl font-extrabold uppercase mt-1 text-[#1E1E1E]">
-                  {selectedCase.name} ({selectedCase.era}) — Итоговый рейтинг команд
+                  {selectedCase.name} ({selectedCase.era}) — Final Macroeconomic Assessment
                 </h1>
                 <p className="text-xs text-[#264653] font-mono mt-1 max-w-xl">{hist.summary}</p>
               </div>
-              <div className="border border-[#1E1E1E] bg-[#F7F4EB] p-4 text-center shrink-0 w-full md:w-48">
-                <div className="text-[10px] font-mono uppercase text-[#264653]">Ваш капитал</div>
-                <div className="text-3xl font-mono font-extrabold text-[#2A9D8F]">${currentStats.treasury}M</div>
-                <div className="text-xs font-mono text-[#1E1E1E] font-bold mt-0.5">ВВП: ${currentStats.gdp}M</div>
+
+              {/* Scorecard: Correct Decisions & Capital Growth */}
+              <div className="border border-[#1E1E1E] bg-[#F7F4EB] p-4 text-center shrink-0 w-full md:w-56">
+                <div className="text-[10px] font-mono uppercase text-[#264653] font-bold">Optimal Decisions Score</div>
+                <div className="text-3xl font-mono font-extrabold text-[#1E1E1E]">
+                  {correctAnswersCount} <span className="text-sm font-normal text-[#264653]">/ 5 Optimal</span>
+                </div>
+                <div className="mt-1 text-xs font-mono font-bold text-[#2A9D8F]">
+                  Capital: ${currentStats.treasury}M ({myGrowthPct >= 0 ? '+' : ''}{myGrowthPct}%)
+                </div>
+                <div className="mt-1.5 inline-block border border-[#1E1E1E] bg-[#E9C46A] px-2 py-0.5 text-[10px] font-mono font-bold">
+                  {getGrade(correctAnswersCount)}
+                </div>
               </div>
             </div>
 
-            {/* CLASSROOM COHORT PODIUM */}
+            {/* CLASSROOM COHORT PODIUM (RANKED BY OPTIMAL ANSWERS & CAPITAL GROWTH) */}
             <div className="border border-[#1E1E1E] bg-[#FFFFFF] p-5 shadow-brutal">
-              <div className="flex justify-between items-center border-b border-[#1E1E1E] pb-3 mb-4">
-                <h3 className="font-mono font-bold text-sm uppercase text-[#1E1E1E]">
-                  🏆 Итоговая таблица лидеров группы (Комната {roomCode})
-                </h3>
-                <span className="text-xs font-mono text-[#264653]">Ранжирование по очкам и капиталу</span>
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[#1E1E1E] pb-3 mb-4 gap-2">
+                <div>
+                  <h3 className="font-mono font-bold text-sm uppercase text-[#1E1E1E] flex items-center gap-2">
+                    🏆 Classroom Cohort Final Leaderboard (Room {roomCode})
+                  </h3>
+                  <div className="text-xs font-mono text-[#264653]">
+                    Fair Evaluation: Ranked primarily by <strong>Optimal Policy Choices (out of 5)</strong>, then by <strong>Capital Growth %</strong>
+                  </div>
+                </div>
+                <span className="text-xs font-mono font-bold border border-[#1E1E1E] bg-[#F7F4EB] px-2 py-1">
+                  {sortedTeams.length} Teams Competed
+                </span>
               </div>
 
-              <div className="space-y-2 font-mono text-xs">
+              <div className="space-y-2.5 font-mono text-xs">
                 {sortedTeams.map((team, idx) => (
                   <div
                     key={team.id}
-                    className={`border border-[#1E1E1E] p-3 flex justify-between items-center ${
+                    className={`border border-[#1E1E1E] p-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 ${
                       team.id === myId ? 'bg-[#E9C46A]/25 ring-2 ring-[#1E1E1E]' : 'bg-[#F7F4EB]'
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <span className="w-6 h-6 bg-[#1E1E1E] text-white flex items-center justify-center font-bold text-xs">
+                      <span className={`w-7 h-7 flex items-center justify-center font-bold text-xs border border-[#1E1E1E] ${
+                        idx === 0 ? 'bg-[#E9C46A] text-[#1E1E1E]' : idx === 1 ? 'bg-slate-300 text-[#1E1E1E]' : idx === 2 ? 'bg-amber-700 text-white' : 'bg-[#1E1E1E] text-white'
+                      }`}>
                         #{idx + 1}
                       </span>
                       <div>
                         <div className="font-bold text-sm text-[#1E1E1E]">
-                          {team.name} {team.id === myId && '(Ваша команда)'}
+                          {team.name} {team.id === myId && '(Your Team)'}
                         </div>
                         <div className="text-[10px] text-[#264653]">
-                          Долг/ВВП: {team.debtToGdp}% • Финал: Раунд {team.round || 5}
+                          Case: {team.countryName || 'Historical Case'} • Debt/GDP: {team.debtToGdp}%
                         </div>
                       </div>
                     </div>
 
-                    <div className="text-right">
-                      <div className="text-base font-extrabold text-[#1E1E1E]">
-                        Капитал: ${team.treasury}M
-                      </div>
-                      <div className="flex items-center justify-end gap-2 mt-0.5">
-                        <span className="text-[11px] font-bold text-[#264653]">{team.score || 75} баллов</span>
+                    <div className="text-left sm:text-right w-full sm:w-auto border-t sm:border-0 border-[#1E1E1E]/20 pt-2 sm:pt-0">
+                      <div className="flex sm:justify-end items-center gap-2">
+                        <span className="font-extrabold text-sm text-[#1E1E1E]">
+                          {team.correctAnswers || 0} / 5 Correct Choices
+                        </span>
                         <span className={`text-[9px] font-bold px-1.5 py-0.5 uppercase text-white ${
                           team.status === 'SURPLUS' ? 'bg-[#2A9D8F]' : 'bg-[#E04F3E]'
                         }`}>
                           {team.status || 'SURPLUS'}
                         </span>
+                      </div>
+                      <div className="text-[11px] text-[#264653] font-bold">
+                        Treasury: ${team.treasury}M ({Number(team.capitalGrowthPct) >= 0 ? '+' : ''}{team.capitalGrowthPct}%)
                       </div>
                     </div>
                   </div>
@@ -815,14 +953,14 @@
               onClick={() => setViewMode('LOBBY')}
               className="bg-[#1E1E1E] text-white font-mono font-bold text-xs uppercase px-6 py-2.5 shadow-brutal hover:bg-[#264653] transition"
             >
-              ← Вернуться в лобби и выбрать новую страну
+              ← Return to Lobby & Select New Country
             </button>
           </div>
         );
       }
 
       // ======================================================================
-      // RENDER: DASHBOARD VIEW (BENTO GRID)
+      // RENDER: DASHBOARD VIEW (100% STRICT ENGLISH BENTO GRID)
       // ======================================================================
       return (
         <div className="max-w-7xl mx-auto p-3 md:p-4 space-y-4">
@@ -831,56 +969,61 @@
             <div className="flex items-center gap-3">
               <span className="bg-[#E04F3E] text-white px-2 py-0.5 font-mono font-bold text-xs">CASE {selectedCase.codeNumber}</span>
               <span className="font-mono font-bold text-xs text-[#1E1E1E]">{selectedCase.name}: {selectedCase.subtitle}</span>
-              <span className="text-xs font-mono text-[#264653] hidden sm:inline">| Команда: <strong>{teamName}</strong> (Комната {roomCode})</span>
+              <span className="text-xs font-mono text-[#264653] hidden sm:inline">| Team: <strong>{teamName}</strong> (Room {roomCode})</span>
             </div>
-            <span className="bg-[#F7F4EB] border border-[#1E1E1E] px-3 py-1 font-mono text-xs font-bold text-[#1E1E1E]">
-              ФИНАНСОВЫЙ ГОД {currentStats.round} ИЗ 5 ({currentShock.fiscalYearLabel})
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="bg-[#E9C46A] border border-[#1E1E1E] px-2.5 py-1 font-mono text-xs font-bold text-[#1E1E1E]">
+                OPTIMAL CHOICES: {correctAnswersCount} / 5
+              </span>
+              <span className="bg-[#F7F4EB] border border-[#1E1E1E] px-3 py-1 font-mono text-xs font-bold text-[#1E1E1E]">
+                FISCAL YEAR {currentStats.round} OF 5 ({currentShock.fiscalYearLabel})
+              </span>
+            </div>
           </div>
 
           {/* 3-Column Bento Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-            {/* 1. REVENUES (3 cols) */}
+            {/* 1. REVENUES & SOVEREIGN BORROWING (3 cols) */}
             <div className="lg:col-span-3 border border-[#1E1E1E] bg-[#FFFFFF] shadow-brutal flex flex-col justify-between">
               <div>
                 <div className="bg-[#E04F3E] text-white p-2 font-mono text-xs font-bold uppercase tracking-wider">
-                  01. ДОХОДЫ И ЗАЙМЫ ($M)
+                  01. REVENUES & BORROWING ($M)
                 </div>
                 <div className="p-4 space-y-4 font-mono text-xs">
                   <div>
-                    <div className="flex justify-between font-bold"><span>Налог на прибыль (Corp)</span><span>{allocations.corporateTax}%</span></div>
+                    <div className="flex justify-between font-bold"><span>Corporate Tax</span><span>{allocations.corporateTax}%</span></div>
                     <input type="range" min="10" max="45" value={allocations.corporateTax} onChange={e => setAllocations({...allocations, corporateTax: Number(e.target.value)})} className="w-full accent-[#1E1E1E] cursor-pointer" />
-                    <div className="text-[10px] text-[#264653]">Оптимум 20–25%. Свыше 28% — бегство капитала.</div>
+                    <div className="text-[10px] text-[#264653]">Optimal ~20–25%. Above 28% triggers capital flight.</div>
                   </div>
                   <div>
-                    <div className="flex justify-between font-bold"><span>Подоходный налог (Income)</span><span>{allocations.incomeTax}%</span></div>
+                    <div className="flex justify-between font-bold"><span>Personal Income Tax</span><span>{allocations.incomeTax}%</span></div>
                     <input type="range" min="10" max="50" value={allocations.incomeTax} onChange={e => setAllocations({...allocations, incomeTax: Number(e.target.value)})} className="w-full accent-[#1E1E1E] cursor-pointer" />
-                    <div className="text-[10px] text-[#264653]">Основная масса налогов. Снижает потребление.</div>
+                    <div className="text-[10px] text-[#264653]">Broadest revenue base. High rates lower consumer spending.</div>
                   </div>
                   <div>
-                    <div className="flex justify-between font-bold"><span>НДС (VAT / Sales)</span><span>{allocations.vat}%</span></div>
+                    <div className="flex justify-between font-bold"><span>VAT / Consumption Tax</span><span>{allocations.vat}%</span></div>
                     <input type="range" min="5" max="25" value={allocations.vat} onChange={e => setAllocations({...allocations, vat: Number(e.target.value)})} className="w-full accent-[#1E1E1E] cursor-pointer" />
-                    <div className="text-[10px] text-[#264653]">Свыше 16% — прямой рост инфляции цен.</div>
+                    <div className="text-[10px] text-[#264653]">Above 16% passes directly into consumer retail inflation.</div>
                   </div>
                   <div>
-                    <div className="flex justify-between font-bold"><span>Суверенные займы (Bonds)</span><span className="text-[#E04F3E]">${allocations.sovereignBorrowing}M</span></div>
+                    <div className="flex justify-between font-bold"><span>Sovereign Borrowing (Bonds)</span><span className="text-[#E04F3E]">${allocations.sovereignBorrowing}M</span></div>
                     <input type="range" min="0" max="1000" step="10" value={allocations.sovereignBorrowing} onChange={e => setAllocations({...allocations, sovereignBorrowing: Number(e.target.value)})} className="w-full accent-[#E04F3E] cursor-pointer" />
-                    <div className="text-[10px] text-[#264653]">Дают живые деньги, но растет госдолг.</div>
+                    <div className="text-[10px] text-[#264653]">Injects liquid cash now, but increases Debt-to-GDP.</div>
                   </div>
                 </div>
               </div>
 
               <div className="p-3 bg-[#F7F4EB] border-t border-[#1E1E1E] font-mono text-xs space-y-1">
-                <div className="flex justify-between text-[#264653]"><span>Сбор налогов:</span><span className="font-bold text-[#1E1E1E]">${preview.totalTaxRevenue}M</span></div>
-                <div className="flex justify-between text-[#264653]"><span>Всего поступлений:</span><span className="font-bold text-[#2A9D8F]">${preview.totalInflows}M</span></div>
+                <div className="flex justify-between text-[#264653]"><span>Tax Revenue:</span><span className="font-bold text-[#1E1E1E]">${preview.totalTaxRevenue}M</span></div>
+                <div className="flex justify-between text-[#264653]"><span>Total Inflows:</span><span className="font-bold text-[#2A9D8F]">${preview.totalInflows}M</span></div>
               </div>
             </div>
 
-            {/* 2. OVERVIEW & METRICS (6 cols) */}
+            {/* 2. CENTER: NATIONAL OVERVIEW & METRICS (6 cols) */}
             <div className="lg:col-span-6 space-y-4">
               <div className="border border-[#1E1E1E] bg-[#FFFFFF] p-5 shadow-brutal">
                 <div className="text-[10px] font-mono uppercase text-[#264653] font-bold tracking-widest">
-                  Текущий капитал суверенного казначейства
+                  Current National Treasury Capital Reserves
                 </div>
                 <div className="flex items-baseline justify-between mt-1">
                   <div className="text-4xl md:text-5xl font-mono font-extrabold text-[#1E1E1E]">
@@ -895,21 +1038,21 @@
 
                 <div className="grid grid-cols-4 gap-2 mt-4 text-center font-mono text-xs border-t border-[#1E1E1E] pt-3">
                   <div className="border border-[#1E1E1E] bg-[#F7F4EB] p-2">
-                    <div className="text-[9px] uppercase text-[#264653]">ВВП (GDP)</div>
+                    <div className="text-[9px] uppercase">Real GDP</div>
                     <div className="font-bold text-sm text-[#1E1E1E] mt-0.5">${currentStats.gdp}M</div>
                   </div>
                   <div className="border border-[#1E1E1E] bg-[#F7F4EB] p-2">
-                    <div className="text-[9px] uppercase text-[#264653]">Рост ВВП</div>
+                    <div className="text-[9px] uppercase">GDP Growth</div>
                     <div className={`font-bold text-sm mt-0.5 ${currentStats.gdpGrowth >= 0 ? 'text-[#2A9D8F]' : 'text-[#E04F3E]'}`}>
                       {currentStats.gdpGrowth > 0 ? '+' : ''}{currentStats.gdpGrowth}%
                     </div>
                   </div>
                   <div className="border border-[#1E1E1E] bg-[#F7F4EB] p-2">
-                    <div className="text-[9px] uppercase text-[#264653]">Долг / ВВП</div>
+                    <div className="text-[9px] uppercase">Debt / GDP</div>
                     <div className="font-bold text-sm text-[#1E1E1E] mt-0.5">{currentStats.debtToGdp}%</div>
                   </div>
                   <div className="border border-[#1E1E1E] bg-[#F7F4EB] p-2">
-                    <div className="text-[9px] uppercase text-[#264653]">Инфляция CPI</div>
+                    <div className="text-[9px] uppercase">CPI Inflation</div>
                     <div className={`font-bold text-sm mt-0.5 ${currentStats.inflation > 6 ? 'text-[#E04F3E]' : 'text-[#1E1E1E]'}`}>
                       {currentStats.inflation}%
                     </div>
@@ -920,61 +1063,63 @@
               {/* Action Button: Confront Crisis */}
               <div className="border border-[#1E1E1E] bg-[#FFFFFF] p-4 shadow-brutal flex flex-col sm:flex-row justify-between items-center gap-3">
                 <span className="font-mono text-xs text-[#264653]">
-                  Исторический кризис года: <strong className="text-[#1E1E1E]">«{currentShock.title}»</strong>
+                  Historical Shock: <strong className="text-[#1E1E1E]">"{currentShock.title}"</strong>
                 </span>
                 <button
                   onClick={() => setViewMode('SHOCK_MODAL')}
                   className="w-full sm:w-auto bg-[#1E1E1E] text-white font-mono font-bold text-xs uppercase px-6 py-2.5 shadow-brutal hover:bg-[#264653] transition"
                 >
-                  Разрешить кризис раунда →
+                  Confront Crisis Decision →
                 </button>
               </div>
             </div>
 
-            {/* 3. EXPENDITURES (3 cols) */}
+            {/* 3. EXPENDITURES & DEBT (3 cols) */}
             <div className="lg:col-span-3 border border-[#1E1E1E] bg-[#FFFFFF] shadow-brutal flex flex-col justify-between">
               <div>
                 <div className="bg-[#E04F3E] text-white p-2 font-mono text-xs font-bold uppercase tracking-wider">
-                  02. РАСХОДЫ БЮДЖЕТА ($M)
+                  02. EXPENDITURES ($M)
                 </div>
                 <div className="p-4 space-y-4 font-mono text-xs">
                   <div>
-                    <div className="flex justify-between font-bold"><span>Инфраструктура</span><span>${allocations.infrastructure}M</span></div>
+                    <div className="flex justify-between font-bold"><span>Infrastructure</span><span>${allocations.infrastructure}M</span></div>
                     <input type="range" min="0" max={currentStats.gdp * 0.25} value={allocations.infrastructure} onChange={e => setAllocations({...allocations, infrastructure: Number(e.target.value)})} className="w-full accent-[#1E1E1E] cursor-pointer" />
-                    <div className="text-[10px] text-[#264653]">Быстрый мультипликатор ВВП (1.45x).</div>
+                    <div className="text-[10px] text-[#264653]">High Keynesian multiplier (1.45x).</div>
                   </div>
                   <div>
-                    <div className="flex justify-between font-bold"><span>Образование и R&D</span><span className="text-[#2A9D8F] font-bold">${allocations.educationRd}M</span></div>
+                    <div className="flex justify-between font-bold"><span>Education & R&D</span><span className="text-[#2A9D8F] font-bold">${allocations.educationRd}M</span></div>
                     <input type="range" min="0" max={currentStats.gdp * 0.20} value={allocations.educationRd} onChange={e => setAllocations({...allocations, educationRd: Number(e.target.value)})} className="w-full accent-[#2A9D8F] cursor-pointer" />
-                    <div className="text-[10px] text-[#264653]">Накапливает человеческий капитал на 4–5 раунды.</div>
+                    <div className="text-[10px] text-[#264653]">Endogenous growth lag unlocks in Rounds 3–5.</div>
                   </div>
                   <div>
-                    <div className="flex justify-between font-bold"><span>Медицина и Соцзащита</span><span>${allocations.healthcareSocial}M</span></div>
+                    <div className="flex justify-between font-bold"><span>Healthcare & Social</span><span>${allocations.healthcareSocial}M</span></div>
                     <input type="range" min="0" max={currentStats.gdp * 0.25} value={allocations.healthcareSocial} onChange={e => setAllocations({...allocations, healthcareSocial: Number(e.target.value)})} className="w-full accent-[#1E1E1E] cursor-pointer" />
-                    <div className="text-[10px] text-[#264653]">Удерживает доверие общества во время кризисов.</div>
+                    <div className="text-[10px] text-[#264653]">Protects approval and social stability.</div>
                   </div>
                   <div>
-                    <div className="flex justify-between font-bold"><span>Выплата долга</span><span className={allocations.debtServicing < preview.mandatoryInterestDue ? 'text-[#E04F3E]' : 'text-[#2A9D8F]'}>${allocations.debtServicing}M</span></div>
+                    <div className="flex justify-between font-bold"><span>Debt Servicing</span><span className={allocations.debtServicing < preview.mandatoryInterestDue ? 'text-[#E04F3E]' : 'text-[#2A9D8F]'}>${allocations.debtServicing}M</span></div>
                     <input type="range" min="0" max={Math.max(preview.mandatoryInterestDue * 2, 200)} value={allocations.debtServicing} onChange={e => setAllocations({...allocations, debtServicing: Number(e.target.value)})} className="w-full accent-[#1E1E1E] cursor-pointer" />
-                    <div className="text-[10px] text-[#264653]">Обязательный процент: ${preview.mandatoryInterestDue}M.</div>
+                    <div className="text-[10px] text-[#264653]">Required Interest: ${preview.mandatoryInterestDue}M.</div>
                   </div>
                 </div>
               </div>
 
               <div className="p-3 bg-[#F7F4EB] border-t border-[#1E1E1E] font-mono text-xs space-y-1">
-                <div className="flex justify-between text-[#264653]"><span>Всего расходов:</span><span className="font-bold text-[#E04F3E]">${preview.totalExpenditure}M</span></div>
-                <div className="flex justify-between text-[#264653]"><span>Сальдо бюджета:</span><span className={`font-bold ${preview.fiscalBalance >= 0 ? 'text-[#2A9D8F]' : 'text-[#E04F3E]'}`}>{preview.fiscalBalance >= 0 ? '+' : ''}${preview.fiscalBalance}M</span></div>
+                <div className="flex justify-between text-[#264653]"><span>Total Outlays:</span><span className="font-bold text-[#E04F3E]">${preview.totalExpenditure}M</span></div>
+                <div className="flex justify-between text-[#264653]"><span>Fiscal Balance:</span><span className={`font-bold ${preview.fiscalBalance >= 0 ? 'text-[#2A9D8F]' : 'text-[#E04F3E]'}`}>{preview.fiscalBalance >= 0 ? '+' : ''}${preview.fiscalBalance}M</span></div>
               </div>
             </div>
           </div>
 
-          {/* LIVE COHORT STANDINGS STRIP */}
+          {/* LIVE COHORT STANDINGS STRIP (RANKED BY OPTIMAL ANSWERS) */}
           <div className="border border-[#1E1E1E] bg-[#FFFFFF] p-4 shadow-brutal">
             <div className="flex justify-between items-center border-b border-[#1E1E1E] pb-2 mb-3">
               <span className="font-mono font-bold text-xs uppercase text-[#1E1E1E]">
-                📊 Живая таблица команд в комнате [{roomCode}]
+                📊 Live Classroom Cohort Standings (Room {roomCode})
               </span>
-              <span className="text-[10px] font-mono text-[#264653]">Синхронизируется при каждом ходе</span>
+              <span className="text-[10px] font-mono text-[#264653]">
+                Ranked by: Optimal Economic Choices (out of 5) → Capital Growth %
+              </span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 font-mono text-xs">
@@ -982,20 +1127,22 @@
                 <div
                   key={team.id}
                   className={`border border-[#1E1E1E] p-2 flex justify-between items-center ${
-                    team.id === myId ? 'bg-[#E9C46A]/20 ring-1 ring-[#1E1E1E]' : 'bg-[#F7F4EB]'
+                    team.id === myId ? 'bg-[#E9C46A]/25 ring-1 ring-[#1E1E1E]' : 'bg-[#F7F4EB]'
                   }`}
                 >
                   <div>
                     <div className="font-bold text-[#1E1E1E]">
-                      #{idx + 1} {team.name} {team.id === myId && '(Вы)'}
+                      #{idx + 1} {team.name} {team.id === myId && '(You)'}
                     </div>
                     <div className="text-[10px] text-[#264653]">
-                      Рнд {team.round || 1} • Долг: {team.debtToGdp}%
+                      RD {team.round || 1} • {team.correctAnswers || 0}/5 Optimal
                     </div>
                   </div>
 
                   <div className="text-right">
-                    <div className="font-extrabold text-[#1E1E1E]">${team.treasury}M</div>
+                    <div className="font-extrabold text-[#1E1E1E]">
+                      {Number(team.capitalGrowthPct) >= 0 ? '+' : ''}{team.capitalGrowthPct || 0}%
+                    </div>
                     <span className={`text-[9px] font-bold px-1 uppercase text-white ${
                       team.status === 'SURPLUS' ? 'bg-[#2A9D8F]' : 'bg-[#E04F3E]'
                     }`}>
@@ -1033,10 +1180,10 @@
                 </div>
                 <div className="flex justify-between pt-2 border-t border-[#1E1E1E]">
                   <button onClick={() => setViewMode('DASHBOARD')} className="border border-[#1E1E1E] px-4 py-2 font-mono text-xs font-bold uppercase hover:bg-slate-100">
-                    ← Изменить ползунки
+                    ← Revise Budget Sliders
                   </button>
                   <button onClick={handleConfirmShock} className="bg-[#1E1E1E] text-white px-6 py-2 font-mono text-xs font-bold uppercase shadow-brutal hover:bg-[#264653]">
-                    Применить решение года →
+                    Execute Fiscal Decision →
                   </button>
                 </div>
               </div>
@@ -1048,19 +1195,22 @@
             <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 animate-in fade-in">
               <div className="bg-white border-2 border-[#1E1E1E] max-w-xl w-full p-6 shadow-brutal-lg space-y-4">
                 <div className="bg-[#1E1E1E] text-white p-2.5 font-mono font-bold text-xs uppercase flex justify-between">
-                  <span>Отчет по итогам {currentStats.round - 1} финансового года</span>
-                  <span className="text-[#E9C46A]">Результат зафиксирован</span>
+                  <span>Fiscal Year {currentStats.round - 1} Macroeconomic Report</span>
+                  <span className={wasLastOptimal ? 'text-[#2A9D8F]' : 'text-amber-400'}>
+                    {wasLastOptimal ? '★ Optimal Choice (+1 Point)' : '▲ Suboptimal Policy (0 Points)'}
+                  </span>
                 </div>
                 <div className="border border-[#1E1E1E] bg-[#F7F4EB] p-3 font-mono text-xs flex justify-between items-center">
                   <div>
-                    <span className="text-[#264653] uppercase text-[10px]">Капитал казначейства:</span>
-                    <div className="text-xl font-extrabold text-[#1E1E1E]">${currentStats.treasury}M</div>
+                    <span className="text-[#264653] uppercase text-[10px]">Optimal Decisions:</span>
+                    <div className="text-xl font-extrabold text-[#1E1E1E]">
+                      {correctAnswersCount} / 5 Correct
+                    </div>
                   </div>
-                  <span className={`px-2 py-0.5 text-xs font-bold uppercase text-white ${
-                    currentStats.budgetBalance >= 0 ? 'bg-[#2A9D8F]' : 'bg-[#E04F3E]'
-                  }`}>
-                    {currentStats.budgetBalance >= 0 ? 'SURPLUS' : 'DEFICIT'} (${currentStats.budgetBalance}M)
-                  </span>
+                  <div className="text-right">
+                    <span className="text-[#264653] uppercase text-[10px]">Treasury Capital:</span>
+                    <div className="text-xl font-extrabold text-[#2A9D8F]">${currentStats.treasury}M</div>
+                  </div>
                 </div>
                 <div className="space-y-2 text-xs">
                   {lastRoundExplanations.map((exp, i) => (
@@ -1072,7 +1222,7 @@
                 </div>
                 <div className="flex justify-end pt-2 border-t border-[#1E1E1E]">
                   <button onClick={handleNext} className="bg-[#1E1E1E] text-white px-6 py-2 font-mono text-xs font-bold uppercase shadow-brutal hover:bg-[#264653]">
-                    {currentStats.round > 5 ? 'Перейти к итоговому рейтингу' : `Перейти к ${currentStats.round} году`} →
+                    {currentStats.round > 5 ? 'View Final Assessment & Leaderboard' : `Proceed to Fiscal Year ${currentStats.round}`} →
                   </button>
                 </div>
               </div>
