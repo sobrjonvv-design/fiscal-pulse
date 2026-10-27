@@ -150,465 +150,479 @@
   <script>
     const SLIDES = [
       // -------------------------------------------------------------
-      // SLIDE 1: Title & Executive Introduction
+      // SLIDE 1: Title & Overview
       // -------------------------------------------------------------
       {
         id: 'title',
         badge: 'Executive Briefing',
-        title: 'Macroeconomic Governance & Fiscal Architecture',
-        subtitle: 'How Sovereign States Manage Public Wealth, Debt Servicing, and Structural Shocks',
+        title: 'The Machine of State: How Governments Actually Work',
+        subtitle: 'Why managing national money is NOT like running a household or a business',
         image: 'https://images.unsplash.com/photo-1541872703-74c5e44368f9?auto=format&fit=crop&w=1200&q=80',
-        imageCaption: 'The Sovereign Treasury: The intersection of democratic mandates and hard fiscal limits.',
+        imageCaption: 'The Sovereign Treasury: Where policy choices make nations rich or bankrupt.',
         contentHtml: `
-          <div class="space-y-4">
-            <p class="text-sm md:text-base leading-relaxed text-[#264653]">
-              A nation's budget is not merely a collection of arithmetic balances—it is the 
-              <strong>supreme operational manifestation of state policy</strong>. Every fiscal choice simultaneously alters 
-              aggregate demand, incentives to invest, inflation, currency stability, and intergenerational solvency.
+          <div class="space-y-3.5">
+            <p class="text-xs md:text-sm leading-relaxed text-[#264653]">
+              A government does not simply put coins into a piggy bank. A sovereign state is a 
+              <strong>giant economic steering wheel</strong>: every tax rate, every road built, and every bond issued 
+              directly dictates whether millions of citizens have jobs or face runaway inflation.
             </p>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 font-mono text-xs pt-2">
-              <div class="border-2 border-[#1E1E1E] bg-[#FFFFFF] p-3 shadow-brutal-sm">
-                <span class="text-[#E04F3E] font-bold block text-sm">PART I</span>
-                <strong class="text-[#1E1E1E]">Fiscal Theory & Mechanics</strong>
-                <p class="text-[11px] text-[#264653] mt-1">Laffer curves, multipliers, debt thresholds, and growth lags.</p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 font-mono text-xs pt-1">
+              <div class="border border-[#1E1E1E] bg-[#FFFFFF] p-2.5 shadow-brutal-sm">
+                <span class="text-[#E04F3E] font-bold block text-xs">PART 1: THE RULES</span>
+                <strong class="text-[#1E1E1E] text-xs">How Money Works</strong>
+                <p class="text-[10px] text-[#264653] mt-1">Laffer tax traps, Keynesian multipliers, and debt spirals explained simply.</p>
               </div>
-              <div class="border-2 border-[#1E1E1E] bg-[#FFFFFF] p-3 shadow-brutal-sm">
-                <span class="text-[#2A9D8F] font-bold block text-sm">PART II</span>
-                <strong class="text-[#1E1E1E]">4 Historical Archetypes</strong>
-                <p class="text-[11px] text-[#264653] mt-1">Singapore 1965, Norway 1975, Greece 2009, Germany 1948.</p>
+              <div class="border border-[#1E1E1E] bg-[#FFFFFF] p-2.5 shadow-brutal-sm">
+                <span class="text-[#2A9D8F] font-bold block text-xs">PART 2: 4 CRISES</span>
+                <strong class="text-[#1E1E1E] text-xs">History in the Balance</strong>
+                <p class="text-[10px] text-[#264653] mt-1">What Singapore, Norway, Greece & Germany did—and what disaster was avoided.</p>
               </div>
-              <div class="border-2 border-[#1E1E1E] bg-[#E9C46A] p-3 shadow-brutal-sm">
-                <span class="text-[#1E1E1E] font-bold block text-sm">PART III</span>
-                <strong class="text-[#1E1E1E]">Classroom Simulation</strong>
-                <p class="text-[11px] text-[#1E1E1E] mt-1">Real-time multiplayer decision combat in <em>Fiscal Pulse</em>.</p>
+              <div class="border border-[#1E1E1E] bg-[#E9C46A] p-2.5 shadow-brutal-sm">
+                <span class="text-[#1E1E1E] font-bold block text-xs">PART 3: THE GAME</span>
+                <strong class="text-[#1E1E1E] text-xs">Fiscal Pulse Arena</strong>
+                <p class="text-[10px] text-[#1E1E1E] mt-1">Take the wheel yourself and lead your country through 5 crisis years.</p>
               </div>
             </div>
           </div>
         `,
-        notes: `Welcome everyone to the Fiscal Architecture Workshop. Explain that students are stepping into the shoes of the Sovereign Economic Council. Highlight that public finances are governed by trade-offs: every dollar spent must be financed through taxation, sovereign borrowing, or monetary expansion, each carrying real economic friction.`
+        notes: `Welcome everyone. Make the distinction clear right away: a government is an economic engine, not a family piggy bank. When the state makes a move, the entire private sector reacts.`
       },
 
       // -------------------------------------------------------------
-      // SLIDE 2: The Core Mandate — The Fiscal Equation
+      // SLIDE 2: State vs Household (The Bakery & Bridge Analogy)
       // -------------------------------------------------------------
       {
         id: 'equation',
-        badge: 'Theoretical Foundation',
-        title: 'The Sovereign Fiscal Equation: State vs Household',
-        subtitle: 'Why a government budget is fundamentally different from a corporate ledger',
+        badge: 'Core Principle 01',
+        title: 'The Family Fallacy: Why States Cannot Just "Save"',
+        subtitle: 'The Paradox of Thrift: When everyone cuts spending, everyone goes broke',
         image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=80',
-        imageCaption: 'The Sovereign State exercises taxation monopoly and currency authority, but cannot escape intertemporal solvency.',
+        imageCaption: 'The National Balance Sheet: When private citizens panic and stop spending, the state must step in.',
         contentHtml: `
-          <div class="space-y-4">
-            <div class="border-2 border-[#1E1E1E] bg-[#FFFFFF] p-3 shadow-brutal font-mono text-center">
-              <span class="text-[10px] md:text-xs uppercase text-[#264653] font-bold block">The Intertemporal Budget Constraint</span>
-              <div class="text-sm sm:text-base md:text-lg font-extrabold text-[#1E1E1E] mt-1 overflow-x-auto py-1">
-                $$ \\underbrace{\\text{Revenues }(T) + \\text{Borrowing }(B)}_{\\text{Public Inflows}} = \\underbrace{\\text{Outlays }(G) + \\text{Debt Service }(r \\cdot D)}_{\\text{Public Expenditures}} $$
+          <div class="space-y-3">
+            <div class="border border-[#1E1E1E] bg-[#FFFFFF] p-2.5 shadow-brutal-sm font-mono text-center">
+              <span class="text-[10px] uppercase text-[#264653] font-bold block">The Sovereign Budget Balance</span>
+              <div class="text-sm sm:text-base font-extrabold text-[#1E1E1E] mt-0.5 overflow-x-auto py-0.5">
+                $$ \\underbrace{\\text{Taxes } (T) + \\text{Borrowing } (B)}_{\\text{Public Inflows}} = \\underbrace{\\text{Public Services } (G) + \\text{Debt Interest } (r \\cdot D)}_{\\text{Money Pumped into the Economy}} $$
               </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs leading-relaxed">
-              <div class="border border-[#1E1E1E] bg-[#FFFFFF] p-3 shadow-brutal-sm">
-                <h4 class="font-bold text-sm text-[#E04F3E] font-mono mb-1">✕ The "Household Fallacy"</h4>
-                <p class="text-[#264653]">
-                  A private household must live within its earnings. When a household cuts spending, it saves cash. 
-                  However, when a sovereign government cuts spending indiscriminately, it directly <strong>depresses national income (GDP)</strong>, 
-                  which shrinks the future tax base and causes unemployment to surge.
-                </p>
+            <div class="border-2 border-[#1E1E1E] bg-[#E9C46A]/20 p-3 shadow-brutal-sm text-xs leading-relaxed">
+              <strong class="font-mono text-[#1E1E1E] uppercase text-xs block mb-1">💡 Real-Life Example: The Bridge & The Bakery</strong>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-[#264653]">
+                <div>
+                  <strong>• A Family:</strong> If a family stops dining out, they save \$500 a month. Their own finances improve immediately.
+                </div>
+                <div>
+                  <strong>• The State:</strong> If the government suddenly cancels a \$10M bridge during a crisis, 500 builders lose jobs. They stop buying bread. The local bakeries go bankrupt and fire their staff.
+                </div>
               </div>
+              <div class="mt-1.5 pt-1.5 border-t border-[#1E1E1E]/20 text-[11px] font-mono text-[#E04F3E] font-bold">
+                ⚠️ Outcome: The state "saved" \$10M, but lost \$15M in tax revenue and now has 1,000 jobless citizens demanding welfare!
+              </div>
+            </div>
 
-              <div class="border border-[#1E1E1E] bg-[#FFFFFF] p-3 shadow-brutal-sm">
-                <h4 class="font-bold text-sm text-[#2A9D8F] font-mono mb-1">✓ The Macroeconomic Reality</h4>
-                <p class="text-[#264653]">
-                  The government is the macroeconomic counter-weight. Its mandate is counter-cyclical: 
-                  accumulate surpluses during economic booms to build fiscal reserves, and deploy targeted fiscal capital 
-                  during recessions to prevent deflationary collapse.
-                </p>
-              </div>
+            <div class="text-[11px] font-mono bg-[#FFFFFF] border border-[#1E1E1E] p-2 text-[#264653]">
+              <strong>The Golden Rule:</strong> In a crisis, the government is the <em>buyer of last resort</em>. It must keep liquidity moving.
             </div>
           </div>
         `,
-        notes: `Emphasize Keynes's 'Paradox of Thrift': when everyone tries to save at once during a panic, aggregate demand collapses unless the state provides counter-cyclical stabilization. But remind students that counter-cyclical spending is NOT free—it requires discipline during good years.`
+        notes: `Use the Bridge & Bakery story. It clicks immediately for students. If everyone saves cash under their mattress at the same time, the whole economy freezes.`
       },
 
       // -------------------------------------------------------------
-      // SLIDE 3: Revenue Architecture & The Laffer Paradox
+      // SLIDE 3: Taxes & The Laffer Curve (The Apple Orchard Example)
       // -------------------------------------------------------------
       {
         id: 'revenue',
-        badge: 'Taxation Economics',
-        title: 'Taxation Architecture: The Laffer Paradox',
-        subtitle: 'Why higher nominal tax rates often lead to lower fiscal receipts',
+        badge: 'Core Principle 02',
+        title: 'Taxes: Why 50% Tax Gives You Less Than 25%',
+        subtitle: 'The Laffer Curve: When taxes become too greedy, the money simply vanishes',
         image: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=1200&q=80',
-        imageCaption: 'The Laffer Curve proves that tax revenues peak at optimal statutory rates; punitive rates induce flight.',
+        imageCaption: 'Taxation is about incentives: Push rates too high, and capital flees across borders.',
         contentHtml: `
-          <div class="space-y-4">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 font-mono text-xs">
-              <div class="border border-[#1E1E1E] bg-[#FFFFFF] p-3 shadow-brutal-sm">
-                <span class="text-[#1E1E1E] font-bold block text-sm">Corporate Tax (CIT)</span>
-                <span class="text-[#2A9D8F] font-bold">Optimal: 20% – 25%</span>
-                <p class="text-[11px] text-[#264653] mt-1.5 leading-normal">
-                  Above 28%, capital mobility triggers immediate headquarter relocation to low-friction jurisdictions (e.g., Greece to Cyprus/Bulgaria).
-                </p>
+          <div class="space-y-3">
+            <div class="border-2 border-[#1E1E1E] bg-[#E9C46A]/20 p-3 shadow-brutal-sm text-xs leading-relaxed">
+              <strong class="font-mono text-[#1E1E1E] uppercase text-xs block mb-1">🍎 The Apple Orchard Analogy</strong>
+              <p class="text-[#264653]">
+                Imagine you run a farmer's market. If you take a <strong>20% fee</strong>, 100 farmers bring 1,000 apples $\\rightarrow$ You get <strong>200 apples</strong>. 
+                If you get greedy and demand a <strong>70% fee</strong>, farmers don't pay 700 apples—they pack their trucks and sell in the next town $\\rightarrow$ You get <strong>0 apples</strong>!
+              </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-2 font-mono text-xs">
+              <div class="border border-[#1E1E1E] bg-[#FFFFFF] p-2.5">
+                <span class="font-bold text-[#1E1E1E] block">Corporate Tax</span>
+                <span class="text-[#2A9D8F] font-bold text-xs">Optimal: 20% – 25%</span>
+                <p class="text-[10px] text-[#264653] mt-1">Above 28%, companies move their headquarters abroad overnight.</p>
               </div>
 
-              <div class="border border-[#1E1E1E] bg-[#FFFFFF] p-3 shadow-brutal-sm">
-                <span class="text-[#1E1E1E] font-bold block text-sm">Personal Income Tax (PIT)</span>
-                <span class="text-[#2A9D8F] font-bold">Broadest Stable Base</span>
-                <p class="text-[11px] text-[#264653] mt-1.5 leading-normal">
-                  Progressive brackets capture economic surplus, but excessive marginal rates penalize labor productivity and incentivize cash shadow economies.
-                </p>
+              <div class="border border-[#1E1E1E] bg-[#FFFFFF] p-2.5">
+                <span class="font-bold text-[#1E1E1E] block">Income Tax (PIT)</span>
+                <span class="text-[#2A9D8F] font-bold text-xs">Broadest Base</span>
+                <p class="text-[10px] text-[#264653] mt-1">If set too high, workers demand under-the-table cash to avoid it.</p>
               </div>
 
-              <div class="border border-[#1E1E1E] bg-[#FFFFFF] p-3 shadow-brutal-sm">
-                <span class="text-[#1E1E1E] font-bold block text-sm">VAT / Consumption Tax</span>
-                <span class="text-[#E04F3E] font-bold">Inflation Conduit</span>
-                <p class="text-[11px] text-[#264653] mt-1.5 leading-normal">
-                  Highly efficient, zero capital flight. However, rates > 18% pass 100% into consumer prices, penalizing low-income consumption.
-                </p>
+              <div class="border border-[#1E1E1E] bg-[#FFFFFF] p-2.5">
+                <span class="font-bold text-[#1E1E1E] block">VAT (Sales Tax)</span>
+                <span class="text-[#E04F3E] font-bold text-xs">Inflation Conduit</span>
+                <p class="text-[10px] text-[#264653] mt-1">Above 16%, it hits retail shelf prices directly, driving inflation.</p>
               </div>
             </div>
 
-            <div class="border-2 border-[#1E1E1E] bg-[#F7F4EB] p-3 font-mono text-xs flex items-center justify-between">
-              <div>
-                <strong class="text-[#1E1E1E] uppercase">Core Policy Lesson:</strong>
-                <span class="text-[#264653] ml-1">Expanding tax compliance and digitization collects more revenue than hiking punitive tax rates!</span>
-              </div>
-              <span class="bg-[#1E1E1E] text-white px-2 py-0.5 font-bold uppercase text-[10px]">Rule of Thumb</span>
+            <div class="text-[11px] font-mono bg-[#F7F4EB] border border-[#1E1E1E] p-2 text-[#1E1E1E]">
+              📌 <strong>Real History:</strong> In 2012, Greece raised corporate taxes to 42%. Over 60,000 Greek companies fled to Bulgaria. Digital compliance collects far more than punitive tax hikes!
             </div>
           </div>
         `,
-        notes: `Walk through the Laffer Curve intuition. If the tax rate is 0%, revenue is 0. If tax is 100%, nobody works legally, revenue is 0. In between lies the revenue-maximizing point T*. Tell students in Fiscal Pulse: don't slam corporate tax to 45% thinking you will solve your deficit; you will crash your GDP!`
+        notes: `Remind students: In Fiscal Pulse, when facing a budget deficit, do NOT raise corporate tax to 45%. You will see your GDP collapse and treasury revenue actually drop!`
       },
 
       // -------------------------------------------------------------
-      // SLIDE 4: Expenditure Dynamics & The Growth Lag
+      // SLIDE 4: Expenditures: Bulldozers vs Microchips
       // -------------------------------------------------------------
       {
         id: 'expenditures',
-        badge: 'Growth Theory',
-        title: 'Expenditure Strategy: Keynes vs Solow-Romer',
-        subtitle: 'Differentiating between short-run demand stimulus and long-run structural productivity',
+        badge: 'Core Principle 03',
+        title: 'Spending: The Fast Bulldozer vs The Slow Microchip',
+        subtitle: 'Keynesian short-run jobs vs Solow-Romer long-run high-tech wealth',
         image: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=1200&q=80',
-        imageCaption: 'Capital expenditures in ports, energy, and digital grids expand the structural production frontier.',
+        imageCaption: 'Infrastructure employs workers today; scientific research creates high-wage industries tomorrow.',
         contentHtml: `
-          <div class="space-y-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <!-- Keynesian Multiplier -->
-              <div class="border-2 border-[#1E1E1E] bg-[#FFFFFF] p-4 shadow-brutal">
-                <div class="flex items-center justify-between border-b border-[#1E1E1E] pb-2 mb-2">
-                  <span class="font-mono font-bold text-sm text-[#E04F3E]">1. Keynesian Multiplier (1.45x)</span>
-                  <span class="text-[10px] font-mono bg-[#E04F3E] text-white px-1.5 py-0.5 font-bold uppercase">Immediate Impact</span>
+          <div class="space-y-3">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <!-- Engine 1: Bulldozer -->
+              <div class="border-2 border-[#1E1E1E] bg-[#FFFFFF] p-3 shadow-brutal-sm">
+                <div class="flex justify-between items-center border-b border-[#1E1E1E] pb-1.5 mb-1.5">
+                  <span class="font-mono font-bold text-xs text-[#E04F3E]">1. The Bulldozer (Infrastructure)</span>
+                  <span class="text-[9px] font-mono bg-[#E04F3E] text-white px-1.5 py-0.5 font-bold uppercase">Immediate (1.45x)</span>
                 </div>
                 <p class="text-xs text-[#264653] leading-relaxed">
-                  <strong>Infrastructure & Public Works:</strong> Injecting capital into roads, power grids, and ports puts idle contractors and engineers to work immediately. 
-                  Every dollar spent generates up to <strong>\$1.45</strong> of downstream consumer and industrial turnover.
+                  <strong>How it works:</strong> The state spends \$100M paving highways. Road contractors hire 2,000 workers. Those workers buy lunch, rent homes, and buy cars. 
+                  Every \$1 spent produces <strong>\$1.45</strong> of national turnover in Year 1.
                 </p>
-                <div class="mt-3 text-[11px] font-mono text-[#1E1E1E] bg-[#FAF8F2] p-2 border border-[#1E1E1E]">
-                  ⚡ <em>Primary Benefit:</em> Fast reduction of cyclical unemployment during recessions.
+                <div class="mt-2 text-[10px] font-mono bg-[#FAF8F2] p-1.5 border border-[#1E1E1E] text-[#1E1E1E]">
+                  ⚡ <em>Best For:</em> Rescuing countries from acute recessions and high unemployment.
                 </div>
               </div>
 
-              <!-- Solow-Romer Endogenous Growth -->
-              <div class="border-2 border-[#1E1E1E] bg-[#FFFFFF] p-4 shadow-brutal">
-                <div class="flex items-center justify-between border-b border-[#1E1E1E] pb-2 mb-2">
-                  <span class="font-mono font-bold text-sm text-[#2A9D8F]">2. Solow-Romer Growth (Human Capital)</span>
-                  <span class="text-[10px] font-mono bg-[#2A9D8F] text-white px-1.5 py-0.5 font-bold uppercase">2-3 Year Lag</span>
+              <!-- Engine 2: Microchip -->
+              <div class="border-2 border-[#1E1E1E] bg-[#FFFFFF] p-3 shadow-brutal-sm">
+                <div class="flex justify-between items-center border-b border-[#1E1E1E] pb-1.5 mb-1.5">
+                  <span class="font-mono font-bold text-xs text-[#2A9D8F]">2. The Microchip (STEM & R&D)</span>
+                  <span class="text-[9px] font-mono bg-[#2A9D8F] text-white px-1.5 py-0.5 font-bold uppercase">2–3 Year Lag</span>
                 </div>
                 <p class="text-xs text-[#264653] leading-relaxed">
-                  <strong>STEM Education & Applied R&D:</strong> Training biomedical scientists, coders, and technical apprentices does not raise GDP in year 1. 
-                  However, it unlocks structural <strong>Total Factor Productivity (TFP)</strong> compounding in years 3 to 5.
+                  <strong>How it works:</strong> The state builds a biotech university. In Year 1, profit is \$0. Students are studying. But by Years 4 and 5, graduates invent new patents, spawning high-tech exports.
                 </p>
-                <div class="mt-3 text-[11px] font-mono text-[#1E1E1E] bg-[#FAF8F2] p-2 border border-[#1E1E1E]">
-                  🌱 <em>Primary Benefit:</em> Permanent shift in potential output and high-wage exports.
+                <div class="mt-2 text-[10px] font-mono bg-[#FAF8F2] p-1.5 border border-[#1E1E1E] text-[#1E1E1E]">
+                  🌱 <em>Best For:</em> Making a country rich permanently with high wages.
                 </div>
               </div>
             </div>
 
-            <p class="text-xs text-[#264653] font-mono text-center">
-              A balanced national budget must deploy <strong>both</strong>: infrastructure for immediate stabilization, and R&D for future wealth.
-            </p>
+            <div class="text-[11px] font-mono bg-[#E9C46A]/20 border border-[#1E1E1E] p-2 text-[#1E1E1E]">
+              🎮 <strong>Game Strategy:</strong> Balance both! If you ignore R&D, your economy will stagnate in Rounds 4 and 5. If you ignore infrastructure, unemployment will crush your approval.
+            </div>
           </div>
         `,
-        notes: `Explain the timing mismatch: politicians love infrastructure because ribbon-cutting ceremonies happen in 12 months. R&D takes years to pay off, so weak governments often cut education first during austerity, which secretly destroys the nation's future economic engine.`
+        notes: `Point out the political trap: politicians love ribbon-cutting on roads because voters see them in 6 months. But cutting science and schools quietly poisons the nation's future.`
       },
 
       // -------------------------------------------------------------
-      // SLIDE 5: Sovereign Debt Solvency & The Default Trap
+      // SLIDE 5: Debt Dynamics & Default
       // -------------------------------------------------------------
       {
         id: 'debt',
-        badge: 'Financial Stability',
-        title: 'Sovereign Debt, Solvency & The Default Trap',
-        subtitle: 'The delicate arithmetic of borrowing, interest rates, and debt-to-GDP ratios',
+        badge: 'Core Principle 04',
+        title: 'National Debt: The Factory Loan vs The Loan Shark',
+        subtitle: 'Debt can build a modern nation—or destroy its currency within 72 hours',
         image: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=1200&q=80',
-        imageCaption: 'Bond markets ruthlessly punish fiscal opacity and unhedged sovereign debt expansion.',
+        imageCaption: 'Bond markets punish default instantly: ratings plunge, credit dries up, and inflation spikes.',
         contentHtml: `
-          <div class="space-y-4">
-            <div class="border-2 border-[#1E1E1E] bg-[#FFFFFF] p-3 shadow-brutal flex flex-col md:flex-row justify-between items-center gap-3">
+          <div class="space-y-3">
+            <div class="border border-[#1E1E1E] bg-[#FFFFFF] p-2.5 shadow-brutal-sm flex flex-col sm:flex-row justify-between items-center gap-2">
               <div>
-                <span class="text-[10px] md:text-xs font-mono font-bold uppercase text-[#E04F3E]">The Golden Rule of Debt Dynamics</span>
-                <div class="text-sm sm:text-base md:text-lg font-mono font-extrabold text-[#1E1E1E] mt-0.5 overflow-x-auto py-1">
+                <span class="text-[10px] font-mono font-bold uppercase text-[#E04F3E]">The Solvency Equation</span>
+                <div class="text-xs sm:text-sm font-mono font-bold text-[#1E1E1E] mt-0.5">
                   $$ \\Delta \\left(\\frac{\\text{Debt}}{\\text{GDP}}\\right) \\approx (r - g) \\cdot d_0 - \\text{Primary Surplus} $$
                 </div>
-                <p class="text-[11px] text-[#264653] font-mono mt-1">
-                  Where \\( r \\) is real interest rate, \\( g \\) is real GDP growth, and \\( d_0 \\) is baseline debt ratio.
-                </p>
+                <div class="text-[10px] text-[#264653] font-mono">r = interest rate on debt, g = annual GDP growth rate.</div>
               </div>
-
-              <div class="bg-[#F7F4EB] border border-[#1E1E1E] p-2.5 text-center shrink-0 w-full md:w-48 font-mono text-xs">
-                <div class="text-[9px] uppercase font-bold text-[#264653]">Critical Danger Zone</div>
-                <div class="text-xl font-extrabold text-[#E04F3E] mt-0.5">r > g</div>
-                <div class="text-[9px] text-[#264653]">Debt grows faster than GDP!</div>
+              <div class="bg-[#F7F4EB] border border-[#1E1E1E] p-2 text-center shrink-0 w-full sm:w-40 font-mono">
+                <span class="text-[9px] text-[#E04F3E] font-bold block uppercase">Danger Zone</span>
+                <span class="text-lg font-extrabold text-[#E04F3E]">r > g</span>
+                <span class="text-[9px] text-[#264653] block">Debt grows faster than GDP!</span>
               </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs leading-relaxed">
-              <div class="border border-[#1E1E1E] bg-[#FFFFFF] p-3">
-                <strong class="font-mono text-sm text-[#E04F3E] block mb-1">Mandatory Debt Servicing:</strong>
-                If a nation pays less than required interest (*Mandatory Interest Due*), international rating agencies instantly downgrade sovereign bonds to junk status. 
-                Yield spreads spike, capital flees, and domestic banks holding state paper face insolvency.
-              </div>
+            <div class="border-2 border-[#1E1E1E] bg-[#FAF8F2] p-2.5 text-xs leading-relaxed">
+              <strong class="font-mono text-[#1E1E1E] uppercase text-xs block mb-1">💳 The Salary vs Interest Analogy</strong>
+              <p class="text-[#264653]">
+                If your salary grows by <strong>2%</strong> a year, but your credit card interest is <strong>8%</strong>, the debt will eventually swallow your entire paycheck. 
+                However, if you borrow at 2% to build a high-speed freight line that grows national GDP by <strong>6%</strong>, the debt actually shrinks compared to your economy!
+              </p>
+            </div>
 
-              <div class="border border-[#1E1E1E] bg-[#FFFFFF] p-3">
-                <strong class="font-mono text-sm text-[#2A9D8F] block mb-1">Growth-Driven Consolidation:</strong>
-                The most sustainable way to lower Debt-to-GDP is not brutal deflationary cuts, but <strong>expanding the denominator (GDP)</strong> 
-                through high-multiplier investments that outpace borrowing costs.
-              </div>
+            <div class="border-2 border-[#E04F3E] bg-[#E04F3E]/10 p-2 text-xs font-mono text-[#1E1E1E]">
+              🚫 <strong>The Default Trap:</strong> In <em>Fiscal Pulse</em>, NEVER pay less than <em>Required Interest Due</em>. Defaulting triggers an immediate junk downgrade: bond yields jump to 20%, foreign trade credit shuts down, and fuel ships stop arriving!
             </div>
           </div>
         `,
-        notes: `Clarify that debt is not inherently evil. Productive debt used to finance ports or tech universities pays for itself. Destructive debt is borrowing at high interest rates simply to pay recurring government salaries or subsidize consumer fuel.`
+        notes: `Make sure players understand: Debt is not evil if it pays for productive assets (ports, tech universities). Debt is suicidal if you borrow at 9% to hand out consumer subsidies.`
       },
 
       // -------------------------------------------------------------
-      // SLIDE 6: Case Study 1 — Singapore 1965
+      // SLIDE 6: Singapore 1965 (Dramatic Arc)
       // -------------------------------------------------------------
       {
         id: 'singapore',
-        badge: 'Historical Archetype 01',
-        title: 'Case Study: Singapore 1965 (Resource Scarcity)',
-        subtitle: 'How an impoverished island transformed into a global maritime and high-tech powerhouse',
+        badge: 'Historical Case 01',
+        title: 'Singapore 1965: The Impossible Nation',
+        subtitle: 'From an impoverished mudflat with 14% unemployment to a global high-tech titan',
         image: 'https://images.unsplash.com/photo-1565967511849-76a60a516170?auto=format&fit=crop&w=1200&q=80',
-        imageCaption: 'Jurong Port: Transforming swampy coastline into the premier transshipment and petrochemical hub.',
+        imageCaption: 'Jurong Port: Transforming squatter slums into the premier maritime and microchip gateway of Asia.',
         contentHtml: `
-          <div class="space-y-4">
-            <div class="border-2 border-[#1E1E1E] bg-[#FFFFFF] p-4 shadow-brutal grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <span class="text-xs font-mono font-bold uppercase text-[#E04F3E]">Baseline Crises (1965):</span>
-                <ul class="list-disc list-inside text-xs text-[#264653] space-y-1.5 mt-2 leading-relaxed">
-                  <li><strong>Sudden Independence:</strong> Expelled from the Malaysian Common Market; zero domestic hinterland.</li>
-                  <li><strong>British Military Exit:</strong> British naval garrisons, which generated <strong>20% of GDP</strong> and 30,000 jobs, announced total withdrawal.</li>
-                  <li><strong>Unemployment at 14%:</strong> Widespread urban poverty, squatter slums, and racial civil riots.</li>
-                </ul>
+          <div class="space-y-2.5 text-xs">
+            <!-- 1. The Crisis -->
+            <div class="border border-[#1E1E1E] bg-[#F7F4EB] p-2">
+              <strong class="font-mono text-[#E04F3E] uppercase text-[11px] block">🚩 The Crisis (What Happened):</strong>
+              <p class="text-[#264653] mt-0.5 leading-relaxed">
+                Expelled from Malaysia in 1965. Zero natural resources (even drinking water was imported). 14% unemployment, racial riots. 
+                Then Britain announced it was pulling out all military bases—erasing <strong>20% of Singapore's entire economy</strong> and 30,000 jobs overnight!
+              </p>
+            </div>
+
+            <!-- 2. What They Did & Outcome -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <div class="border border-[#1E1E1E] bg-[#FFFFFF] p-2">
+                <strong class="font-mono text-[#2A9D8F] uppercase text-[11px] block">🛠️ What They Did:</strong>
+                <p class="text-[#264653] mt-0.5 leading-relaxed">
+                  Refused protectionism! Kept ports 100% duty-free. Created the EDB to offer 10-year tax holidays to US tech giants (Texas Instruments, HP). 
+                  Drained malaria swamps in Jurong to build deep-water docks.
+                </p>
               </div>
 
-              <div class="bg-[#F7F4EB] border border-[#1E1E1E] p-3 text-xs leading-relaxed">
-                <span class="text-xs font-mono font-bold uppercase text-[#2A9D8F]">The Master Strategy:</span>
-                <p class="mt-2 text-[#264653]">
-                  <strong>1. Open-Door Foreign Direct Investment (FDI):</strong> Created the Economic Development Board (EDB) to attract American and Japanese multinational corporations (Texas Instruments, National Semiconductor).
-                </p>
-                <p class="mt-2 text-[#264653]">
-                  <strong>2. Jurong Industrial Infrastructure:</strong> Massive public works turning mudflats into deep-water berths and export-processing zones.
-                </p>
-                <p class="mt-2 text-[#264653]">
-                  <strong>3. The Anti-Tariff Stance:</strong> Refused protectionist import substitution; embraced 100% unilateral free trade.
+              <div class="border border-[#1E1E1E] bg-[#2A9D8F]/15 p-2">
+                <strong class="font-mono text-[#2A9D8F] uppercase text-[11px] block">🏆 The Real Result:</strong>
+                <p class="text-[#1E1E1E] mt-0.5 leading-relaxed">
+                  Leapfrogged from Third World to First in 30 years. Today, Singapore has the #1 transshipment port and a GDP per capita over <strong>\$85,000</strong> (higher than the US).
                 </p>
               </div>
             </div>
 
-            <div class="bg-[#E9C46A]/20 border border-[#1E1E1E] p-2.5 font-mono text-xs text-[#1E1E1E]">
-              💡 <strong>Game Lesson:</strong> As Singapore, never implement import tariffs or consumer fuel subsidies. Prioritize Jurong infrastructure, open port logistics, and technical vocational schooling!
+            <!-- 3. What Would Have Happened -->
+            <div class="border-2 border-[#E04F3E] bg-[#E04F3E]/10 p-2 font-mono">
+              <strong class="text-[#E04F3E] uppercase text-[11px] block">💥 What Would Have Happened If They Failed:</strong>
+              <p class="text-[#1E1E1E] mt-0.5 text-[11px] leading-relaxed">
+                If Singapore had chosen high import tariffs to "protect local craftsmen" and spent treasury reserves on food handouts: international ships would have bypassed the island for Malaysia, high-tech factories would never have arrived, and Singapore would have become an impoverished slum city dependent on foreign food aid.
+              </p>
             </div>
           </div>
         `,
-        notes: `Highlight to the class: When Singapore was kicked out of Malaysia, economists predicted it could not survive. Lee Kuan Yew and Goh Keng Swee leapfrogged the region by tying Singapore directly to developed Western markets.`
+        notes: `Lee Kuan Yew and Goh Keng Swee did the opposite of what other newly independent nations did: instead of kicking foreign companies out, they invited them in and guaranteed zero corruption and world-class logistics.`
       },
 
       // -------------------------------------------------------------
-      // SLIDE 7: Case Study 2 — Norway 1975
+      // SLIDE 7: Norway 1975 (Dramatic Arc)
       // -------------------------------------------------------------
       {
         id: 'norway',
-        badge: 'Historical Archetype 02',
-        title: 'Case Study: Norway 1975 (Managing Resource Wealth)',
-        subtitle: 'Defeating "Dutch Disease" through institutional sovereign wealth sterilization',
+        badge: 'Historical Case 02',
+        title: 'Norway 1975: Defeating "Dutch Disease"',
+        subtitle: 'How Norway struck colossal oil reserves without destroying the rest of its economy',
         image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80',
-        imageCaption: 'The North Sea oil boom: Balancing hydrocarbon bonanzas with long-term macroeconomic stability.',
+        imageCaption: 'The North Sea oil fields: Generating sovereign wealth while shielding domestic manufacturing.',
         contentHtml: `
-          <div class="space-y-4">
-            <div class="border-2 border-[#1E1E1E] bg-[#FFFFFF] p-4 shadow-brutal grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <span class="text-xs font-mono font-bold uppercase text-[#E04F3E]">The Trap: "Dutch Disease"</span>
-                <p class="text-xs text-[#264653] mt-2 leading-relaxed">
-                  When a nation discovers vast natural resources, massive foreign capital floods in to purchase the commodity. 
-                  This causes the <strong>national currency to dramatically appreciate</strong>. 
-                  Domestic non-resource factories (manufacturing, agriculture, timber) become instantly uncompetitive and go bankrupt.
+          <div class="space-y-2.5 text-xs">
+            <!-- 1. The Crisis -->
+            <div class="border border-[#1E1E1E] bg-[#F7F4EB] p-2">
+              <strong class="font-mono text-[#E04F3E] uppercase text-[11px] block">🚩 The Crisis: The "Dutch Disease" Curse</strong>
+              <p class="text-[#264653] mt-0.5 leading-relaxed">
+                Discovered colossal North Sea oil in 1969. But resource wealth is dangerous: when oil billions flood into a small country, the local currency rockets upward. 
+                Foreigners can no longer afford Norwegian timber, fish, or machinery. Traditional factories go bankrupt, creating total dependency on oil!
+              </p>
+            </div>
+
+            <!-- 2. What They Did & Outcome -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <div class="border border-[#1E1E1E] bg-[#FFFFFF] p-2">
+                <strong class="font-mono text-[#2A9D8F] uppercase text-[11px] block">🛠️ What They Did:</strong>
+                <p class="text-[#264653] mt-0.5 leading-relaxed">
+                  <strong>Capital Sterilization:</strong> Banned oil money from being spent inside Norway! Funneled it into a Sovereign Wealth Fund (<em>Oljefondet</em>) invested abroad in 9,000 global firms. The state was legally limited to spending only the 3% annual dividend.
                 </p>
-                <div class="mt-2 text-xs font-mono text-[#E04F3E]">
-                  Result: Total economic dependency on a volatile single commodity!
-                </div>
               </div>
 
-              <div class="bg-[#F7F4EB] border border-[#1E1E1E] p-3 text-xs leading-relaxed">
-                <span class="text-xs font-mono font-bold uppercase text-[#2A9D8F]">The Norwegian Sovereign Solution:</span>
-                <p class="mt-2 text-[#264653]">
-                  <strong>1. Capital Sterilization (Oljefondet):</strong> Petroleum taxes are not spent inside the domestic economy. They are invested <strong>abroad in foreign equities and bonds</strong>.
-                </p>
-                <p class="mt-2 text-[#264653]">
-                  <strong>2. The 3–4% Fiscal Spending Rule:</strong> The state budget may only draw the real expected investment returns of the fund, leaving the capital principal untouched forever.
-                </p>
-                <p class="mt-2 text-[#264653]">
-                  <strong>3. Counter-Cyclical Buffers:</strong> Preserves engineering and maritime diversification.
+              <div class="border border-[#1E1E1E] bg-[#2A9D8F]/15 p-2">
+                <strong class="font-mono text-[#2A9D8F] uppercase text-[11px] block">🏆 The Real Result:</strong>
+                <p class="text-[#1E1E1E] mt-0.5 leading-relaxed">
+                  Norway built a <strong>\$1.6 Trillion</strong> wealth fund (~\$300,000 per citizen), while preserving a thriving, diversified non-oil engineering and green maritime economy.
                 </p>
               </div>
             </div>
 
-            <div class="bg-[#E9C46A]/20 border border-[#1E1E1E] p-2.5 font-mono text-xs text-[#1E1E1E]">
-              💡 <strong>Game Lesson:</strong> As Norway, do not spend oil windfalls on domestic wage hikes or subsidies! Sterilize petrodollars into the Sovereign Wealth Fund and protect green marine tech.
+            <!-- 3. What Would Have Happened -->
+            <div class="border-2 border-[#E04F3E] bg-[#E04F3E]/10 p-2 font-mono">
+              <strong class="text-[#E04F3E] uppercase text-[11px] block">💥 What Would Have Happened If They Failed:</strong>
+              <p class="text-[#1E1E1E] mt-0.5 text-[11px] leading-relaxed">
+                If Norway had done what Venezuela or 1970s Britain did (spending all oil royalties on instant domestic wage hikes and subsidies): domestic inflation would have hit 30%, non-oil manufacturing would have died out, and when oil prices crashed in 1986, Norway would have been left with a broke treasury, shuttered factories, and massive unemployment.
+              </p>
             </div>
           </div>
         `,
-        notes: `Contrast Norway with Venezuela or Nigeria. Many countries struck oil and became poorer or hyper-inflationary due to corruption and Dutch disease. Norway created the largest sovereign wealth fund on earth (\$1.6 trillion) by saving abroad.`
+        notes: `Contrast Norway with Venezuela: Both have enormous oil reserves. Norway saved its wealth abroad and prospered; Venezuela spent it all on domestic consumer subsidies and collapsed into hyperinflation.`
       },
 
       // -------------------------------------------------------------
-      // SLIDE 8: Case Study 3 — Greece 2009
+      // SLIDE 8: Greece 2009 (Dramatic Arc)
       // -------------------------------------------------------------
       {
         id: 'greece',
-        badge: 'Historical Archetype 03',
-        title: 'Case Study: Greece 2009 (Debt Crisis in a Currency Union)',
-        subtitle: 'The perils of structural deficits without independent monetary devaluation',
+        badge: 'Historical Case 03',
+        title: 'Greece 2009: The Eurozone Debt Trap',
+        subtitle: 'Facing sovereign bankruptcy inside a currency union without the ability to devalue',
         image: 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&w=1200&q=80',
-        imageCaption: 'Syntagma Square: Navigating severe fiscal consolidation without triggering a socio-economic collapse.',
+        imageCaption: 'Athens, 2009: The brutal math of sovereign debt and structural fiscal consolidation.',
         contentHtml: `
-          <div class="space-y-4">
-            <div class="border-2 border-[#1E1E1E] bg-[#FFFFFF] p-4 shadow-brutal grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <span class="text-xs font-mono font-bold uppercase text-[#E04F3E]">The Structural Impasse:</span>
-                <ul class="list-disc list-inside text-xs text-[#264653] space-y-1.5 mt-2 leading-relaxed">
-                  <li><strong>Hidden Budget Deficit:</strong> True deficit disclosed at <strong>15.7% of GDP</strong> (5x EU limits).</li>
-                  <li><strong>The Eurozone Straightjacket:</strong> Because Greece used the Euro, it <strong>could not devalue its currency</strong> or print drachmas to stimulate exports.</li>
-                  <li><strong>The Austerity Spiral:</strong> Across-the-board spending cuts caused GDP to drop by 25%, making the Debt-to-GDP ratio skyrocket past 180%.</li>
-                </ul>
+          <div class="space-y-2.5 text-xs">
+            <!-- 1. The Crisis -->
+            <div class="border border-[#1E1E1E] bg-[#F7F4EB] p-2">
+              <strong class="font-mono text-[#E04F3E] uppercase text-[11px] block">🚩 The Crisis: Hidden Deficits & The Euro Lock</strong>
+              <p class="text-[#264653] mt-0.5 leading-relaxed">
+                In late 2009, Greece revealed a hidden budget deficit of <strong>15.7% of GDP</strong>. Debt hit 170%. 
+                Crucially, because Greece used the Euro, it <strong>could NOT print drachmas</strong> or devalue its currency to boost exports. Bond markets shut Greece out completely.
+              </p>
+            </div>
+
+            <!-- 2. What They Did & Outcome -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <div class="border border-[#1E1E1E] bg-[#FFFFFF] p-2">
+                <strong class="font-mono text-[#2A9D8F] uppercase text-[11px] block">🛠️ What They Did:</strong>
+                <p class="text-[#264653] mt-0.5 leading-relaxed">
+                  Reversed punitive tax rates and focused on <strong>tax compliance</strong>: mandatory card terminals (POS), digital receipts, and e-invoicing (IAPR). Recapitalized systemic banks with European stability funds, and funded youth tech vouchers.
+                </p>
               </div>
 
-              <div class="bg-[#F7F4EB] border border-[#1E1E1E] p-3 text-xs leading-relaxed">
-                <span class="text-xs font-mono font-bold uppercase text-[#2A9D8F]">The Real Exit Path:</span>
-                <p class="mt-2 text-[#264653]">
-                  <strong>1. Avoid the Laffer Trap:</strong> Hiking corporate taxes to 42% caused 60,000 Greek companies to register in Bulgaria. The solution was <strong>digitizing the tax agency (IAPR)</strong> and mandatory e-invoicing.
-                </p>
-                <p class="mt-2 text-[#264653]">
-                  <strong>2. Bank Recapitalization:</strong> Restoring liquidity to systemic lenders to prevent the credit transmission system from freezing.
-                </p>
-                <p class="mt-2 text-[#264653]">
-                  <strong>3. Youth Retention Vouchers:</strong> Halting devastating brain drain.
+              <div class="border border-[#1E1E1E] bg-[#2A9D8F]/15 p-2">
+                <strong class="font-mono text-[#2A9D8F] uppercase text-[11px] block">🏆 The Real Result:</strong>
+                <p class="text-[#1E1E1E] mt-0.5 leading-relaxed">
+                  Restored primary budget surpluses, exited the international bailout mechanism, and Greek sovereign bonds were upgraded back to investment grade.
                 </p>
               </div>
             </div>
 
-            <div class="bg-[#E9C46A]/20 border border-[#1E1E1E] p-2.5 font-mono text-xs text-[#1E1E1E]">
-              💡 <strong>Game Lesson:</strong> As Greece, do not hike statutory corporate tax rates or monetize debt into a drachma panic. Focus on tax compliance digitization, youth tech vouchers, and structural labor flexibility!
+            <!-- 3. What Would Have Happened -->
+            <div class="border-2 border-[#E04F3E] bg-[#E04F3E]/10 p-2 font-mono">
+              <strong class="text-[#E04F3E] uppercase text-[11px] block">💥 What Would Have Happened If They Failed:</strong>
+              <p class="text-[#1E1E1E] mt-0.5 text-[11px] leading-relaxed">
+                If Greece had chosen a chaotic "Grexit" (printing new drachmas to pay debt): the new currency would have crashed 80% on Day 1. Citizen savings in banks would have evaporated, food and medicine imports would have ceased, and Greece would have spiraled into 1920s Weimar-style hyperinflation and total financial isolation.
+              </p>
             </div>
           </div>
         `,
-        notes: `Emphasize the unique challenge: inside a monetary union like the Eurozone, you cannot devalue your way out of trouble. You have to carry out 'internal devaluation' through productivity and structural reforms.`
+        notes: `The key takeaway for Greece: In a currency union, you cannot devalue your currency. Your only path to survival is internal reform, fighting tax evasion with technology, and restoring bank credit.`
       },
 
       // -------------------------------------------------------------
-      // SLIDE 9: Case Study 4 — Germany 1948
+      // SLIDE 9: Germany 1948 (Dramatic Arc)
       // -------------------------------------------------------------
       {
         id: 'germany',
-        badge: 'Historical Archetype 04',
-        title: 'Case Study: Germany 1948 (The Social Market Economy)',
-        subtitle: 'Ludwig Erhard’s Ordoliberal revolution: Price deregulation and hard currency foundation',
+        badge: 'Historical Case 04',
+        title: 'Germany 1948: The Miracle of Honest Prices',
+        subtitle: 'How Ludwig Erhard ended empty shelves and cigarette money in a single Sunday',
         image: 'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?auto=format&fit=crop&w=1200&q=80',
-        imageCaption: 'The introduction of the Deutsche Mark in June 1948 ended the barter cigarette economy overnight.',
+        imageCaption: 'June 1948: The birth of the Deutsche Mark restored trust in money and honest work overnight.',
         contentHtml: `
-          <div class="space-y-4">
-            <div class="border-2 border-[#1E1E1E] bg-[#FFFFFF] p-4 shadow-brutal grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <span class="text-xs font-mono font-bold uppercase text-[#E04F3E]">Post-War Collapse:</span>
-                <p class="text-xs text-[#264653] mt-2 leading-relaxed">
-                  Post-WWII Germany suffered under strict Allied price controls and rationing. 
-                  Because official prices were capped below real costs, legal shops were completely empty. 
-                  Commerce occurred exclusively on the black market using American cigarettes and coffee as currency.
+          <div class="space-y-2.5 text-xs">
+            <!-- 1. The Crisis -->
+            <div class="border border-[#1E1E1E] bg-[#F7F4EB] p-2">
+              <strong class="font-mono text-[#E04F3E] uppercase text-[11px] block">🚩 The Crisis: Ruins, Rationing & Cigarette Currency</strong>
+              <p class="text-[#264653] mt-0.5 leading-relaxed">
+                Post-WWII Germany lay in rubble. The currency (Reichsmark) was worthless paper. 
+                Allied forces enforced strict price controls and ration stamps. Because official prices were set below cost, store shelves were completely empty! People only traded using American cigarettes, coffee, and butter on the black market.
+              </p>
+            </div>
+
+            <!-- 2. What They Did & Outcome -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <div class="border border-[#1E1E1E] bg-[#FFFFFF] p-2">
+                <strong class="font-mono text-[#2A9D8F] uppercase text-[11px] block">🛠️ What They Did:</strong>
+                <p class="text-[#264653] mt-0.5 leading-relaxed">
+                  <strong>Erhard's Sunday Gamble (June 20, 1948):</strong> On a Sunday, without Allied permission, Ludwig Erhard went on the radio and abolished all rationing and price controls overnight. Introduced the hard Deutsche Mark (10:1 ratio) and invested Marshall Plan funds into factory machine tools.
                 </p>
               </div>
 
-              <div class="bg-[#F7F4EB] border border-[#1E1E1E] p-3 text-xs leading-relaxed">
-                <span class="text-xs font-mono font-bold uppercase text-[#2A9D8F]">The Erhard Miracle (Wirtschaftswunder):</span>
-                <p class="mt-2 text-[#264653]">
-                  <strong>1. Overnight Price Deregulation:</strong> On a Sunday in June 1948, Economics Director Ludwig Erhard abolished rationing and price caps against Allied orders, instantly restoring the price discovery mechanism.
-                </p>
-                <p class="mt-2 text-[#264653]">
-                  <strong>2. Introduction of the Deutsche Mark:</strong> Replaced the worthless Reichsmark at a 10:1 ratio, restoring absolute trust in cash savings.
-                </p>
-                <p class="mt-2 text-[#264653]">
-                  <strong>3. Dual-Track Apprenticeships:</strong> Marshall plan funds directed into industrial machine tooling.
+              <div class="border border-[#1E1E1E] bg-[#2A9D8F]/15 p-2">
+                <strong class="font-mono text-[#2A9D8F] uppercase text-[11px] block">🏆 The Real Result:</strong>
+                <p class="text-[#1E1E1E] mt-0.5 leading-relaxed">
+                  On Monday morning, store windows across Germany were bursting with sausages, shoes, and tools. Restoring honest market prices triggered the <em>Wirtschaftswunder</em> (Economic Miracle).
                 </p>
               </div>
             </div>
 
-            <div class="bg-[#E9C46A]/20 border border-[#1E1E1E] p-2.5 font-mono text-xs text-[#1E1E1E]">
-              💡 <strong>Game Lesson:</strong> As Germany, maintain hard currency discipline, abolish administrative price ceilings, and invest heavily in capital goods reinvestment and the Mittelstand!
+            <!-- 3. What Would Have Happened -->
+            <div class="border-2 border-[#E04F3E] bg-[#E04F3E]/10 p-2 font-mono">
+              <strong class="text-[#E04F3E] uppercase text-[11px] block">💥 What Would Have Happened If They Failed:</strong>
+              <p class="text-[#1E1E1E] mt-0.5 text-[11px] leading-relaxed">
+                If Germany had kept Allied price controls and printed more paper money: black market gangs would have continued running the economy, farmers would have kept hoarding grain, factories would have stayed idle, and Germany would have remained an impoverished, de-industrialized nation dependent on foreign food aid.
+              </p>
             </div>
           </div>
         `,
-        notes: `Explain the psychological magic of June 21, 1948: On Saturday the shelves were bare. On Monday morning with the new Deutsche Mark and free prices, store windows were bursting with butter, meat, and shoes. Markets work when price signals are honest.`
+        notes: `The psychological magic of June 21, 1948: On Saturday, nothing was for sale. On Monday, with the new currency and free prices, everything was back on shelves. Honest price signals restore work incentives immediately.`
       },
 
       // -------------------------------------------------------------
-      // SLIDE 10: Practical Simulation Workshop & Rules
+      // SLIDE 10: The Simulation Arena
       // -------------------------------------------------------------
       {
         id: 'simulation',
         badge: 'Classroom Battle Arena',
-        title: 'The "Fiscal Pulse" Simulation: Rules of Engagement',
-        subtitle: 'Applying theoretical principles in a live, deterministic macroeconomic sandbox',
+        title: 'The "Fiscal Pulse" Simulation: Rules of Combat',
+        subtitle: 'Take the seat of the Finance Minister and navigate 5 crisis years in real time',
         image: 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?auto=format&fit=crop&w=1200&q=80',
-        imageCaption: 'Teams compete simultaneously across identical crisis rooms to prove macroeconomic stewardship.',
+        imageCaption: 'Teams compete live on the cohort leaderboard via real-time WebSocket telemetry.',
         contentHtml: `
-          <div class="space-y-4">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 font-mono text-xs">
-              <div class="border-2 border-[#1E1E1E] bg-[#FFFFFF] p-3 shadow-brutal-sm">
-                <span class="bg-[#1E1E1E] text-white px-2 py-0.5 text-[10px] font-bold uppercase">Step 1: Setup</span>
-                <strong class="text-[#1E1E1E] block mt-1.5 text-sm">Join Shared Room</strong>
-                <p class="text-[11px] text-[#264653] mt-1">
-                  Enter classroom Room Code (e.g. <code>482-910</code>). Set your team name and pick your historical country case.
+          <div class="space-y-3">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 font-mono text-xs">
+              <div class="border-2 border-[#1E1E1E] bg-[#FFFFFF] p-2.5 shadow-brutal-sm">
+                <span class="bg-[#1E1E1E] text-white px-2 py-0.5 text-[10px] font-bold uppercase">1. Join Room</span>
+                <strong class="text-[#1E1E1E] block mt-1 text-xs">Enter Classroom Code</strong>
+                <p class="text-[10px] text-[#264653] mt-1">
+                  Type your team name, enter the shared room code (e.g. <code>482-910</code>), and pick your country case.
                 </p>
               </div>
 
-              <div class="border-2 border-[#1E1E1E] bg-[#FFFFFF] p-3 shadow-brutal-sm">
-                <span class="bg-[#E04F3E] text-white px-2 py-0.5 text-[10px] font-bold uppercase">Step 2: 5 Fiscal Years</span>
-                <strong class="text-[#1E1E1E] block mt-1.5 text-sm">Confront Crises</strong>
-                <p class="text-[11px] text-[#264653] mt-1">
-                  Adjust tax/spend sliders. Face 5 authentic historical shock events. Execute your policy choices.
+              <div class="border-2 border-[#1E1E1E] bg-[#FFFFFF] p-2.5 shadow-brutal-sm">
+                <span class="bg-[#E04F3E] text-white px-2 py-0.5 text-[10px] font-bold uppercase">2. 5 Fiscal Years</span>
+                <strong class="text-[#1E1E1E] block mt-1 text-xs">Confront Historical Crises</strong>
+                <p class="text-[10px] text-[#264653] mt-1">
+                  Adjust 4 tax & 4 spending sliders. Choose the structural solution to each year's crisis.
                 </p>
               </div>
 
-              <div class="border-2 border-[#1E1E1E] bg-[#2A9D8F] text-white p-3 shadow-brutal-sm">
-                <span class="bg-white text-[#1E1E1E] px-2 py-0.5 text-[10px] font-bold uppercase">Step 3: Evaluation</span>
-                <strong class="block mt-1.5 text-sm">Classroom Podium</strong>
-                <p class="text-[11px] text-white/90 mt-1">
-                  Fairly evaluated by <strong>Optimal Decisions (0–5)</strong> and <strong>Capital Growth %</strong>, not raw dollar sizes!
+              <div class="border-2 border-[#1E1E1E] bg-[#2A9D8F] text-white p-2.5 shadow-brutal-sm">
+                <span class="bg-white text-[#1E1E1E] px-2 py-0.5 text-[10px] font-bold uppercase">3. Fair Ranking</span>
+                <strong class="block mt-1 text-xs">The Winning Metric</strong>
+                <p class="text-[10px] text-white/90 mt-1">
+                  Ranked by <strong>Optimal Decisions (0 to 5)</strong> and <strong>Capital Growth %</strong>—not raw starting dollars!
                 </p>
               </div>
             </div>
 
-            <div class="border border-[#1E1E1E] bg-[#F7F4EB] p-3 text-xs flex flex-col sm:flex-row justify-between items-center gap-3">
+            <div class="border border-[#1E1E1E] bg-[#F7F4EB] p-2.5 text-xs flex flex-col sm:flex-row justify-between items-center gap-2">
               <div class="font-mono text-[#264653]">
-                🌐 <strong>Cloud Real-Time Sync:</strong> The leaderboard updates live across all student laptops via WebSocket!
+                🟢 <strong>Live Sync:</strong> When another team clicks a country or scores a point, you see it on your screen in real time!
               </div>
-              <a href="./index.html" class="bg-[#1E1E1E] text-white font-mono font-bold text-xs uppercase px-5 py-2 shadow-brutal hover:bg-[#2A9D8F] transition text-center shrink-0">
-                🚀 Launch Simulation Game →
+              <a href="./index.html" class="bg-[#1E1E1E] text-white font-mono font-bold text-xs uppercase px-4 py-1.5 shadow-brutal hover:bg-[#2A9D8F] transition text-center shrink-0">
+                🚀 Launch Game Now →
               </a>
             </div>
           </div>
         `,
-        notes: `Point out the URL to the students. Tell each team to pick a unique name (e.g., Team Alpha, Team Vanguard) and ensure everyone enters the exact same Room Code.`
+        notes: `Remind students: Teams playing Singapore ($500M starting capital) and Germany ($8,500M starting GDP) are judged fairly on policy decisions (5/5) and growth %, not starting cash size.`
       },
 
       // -------------------------------------------------------------
@@ -617,55 +631,50 @@
       {
         id: 'action',
         badge: 'Executive Briefing',
-        title: 'Team Strategy Checklist: Before You Hit "Execute"',
-        subtitle: 'A four-step analytical checklist to ensure optimal policy execution',
+        title: 'The Player’s 4 Golden Rules: Pre-Flight Checklist',
+        subtitle: 'Review these 4 checks every fiscal year before you hit "Execute"',
         image: 'https://images.unsplash.com/photo-1509099836639-18ba1795216d?auto=format&fit=crop&w=1200&q=80',
-        imageCaption: 'Macroeconomic leadership is about making disciplined, evidence-based choices under uncertainty.',
+        imageCaption: 'Real macroeconomic stewardship is about making disciplined, structural choices under pressure.',
         contentHtml: `
-          <div class="space-y-4">
-            <div class="border-2 border-[#1E1E1E] bg-[#FFFFFF] p-5 shadow-brutal">
-              <h4 class="font-mono font-bold text-sm uppercase text-[#1E1E1E] border-b border-[#1E1E1E] pb-2 mb-3">
-                Team Pre-Flight Checklist (Run Before Every Fiscal Year):
-              </h4>
-              <div class="space-y-2.5 font-mono text-xs">
-                <div class="flex items-start gap-2 bg-[#F7F4EB] p-2 border border-[#1E1E1E]">
-                  <span class="text-[#2A9D8F] font-bold text-base leading-none">✓</span>
-                  <div>
-                    <strong>1. Debt Servicing Check:</strong> Did you set Debt Servicing at or above the <em>Required Interest Due</em>? Never default!
-                  </div>
+          <div class="space-y-3 font-mono text-xs">
+            <div class="border-2 border-[#1E1E1E] bg-[#FFFFFF] p-3 shadow-brutal space-y-2">
+              <div class="flex items-start gap-2 bg-[#F7F4EB] p-2 border border-[#1E1E1E]">
+                <span class="text-[#2A9D8F] font-bold text-sm leading-none">✓</span>
+                <div>
+                  <strong>1. Never Default:</strong> Check the Debt Servicing slider. Is it at or above <em>Required Interest Due</em>? A default destroys your game.
                 </div>
+              </div>
 
-                <div class="flex items-start gap-2 bg-[#F7F4EB] p-2 border border-[#1E1E1E]">
-                  <span class="text-[#2A9D8F] font-bold text-base leading-none">✓</span>
-                  <div>
-                    <strong>2. Laffer Boundary Check:</strong> Is Corporate Tax safely between 20% and 26%? Don't trigger capital flight!
-                  </div>
+              <div class="flex items-start gap-2 bg-[#F7F4EB] p-2 border border-[#1E1E1E]">
+                <span class="text-[#2A9D8F] font-bold text-sm leading-none">✓</span>
+                <div>
+                  <strong>2. Respect the Laffer Curve:</strong> Keep Corporate Tax between <strong>20% and 26%</strong>. Don't chase business away to other countries!
                 </div>
+              </div>
 
-                <div class="flex items-start gap-2 bg-[#F7F4EB] p-2 border border-[#1E1E1E]">
-                  <span class="text-[#2A9D8F] font-bold text-base leading-none">✓</span>
-                  <div>
-                    <strong>3. Multiplier Balance:</strong> Are you balancing infrastructure (instant Keynesian jobs) with R&D (long-run Solow growth)?
-                  </div>
+              <div class="flex items-start gap-2 bg-[#F7F4EB] p-2 border border-[#1E1E1E]">
+                <span class="text-[#2A9D8F] font-bold text-sm leading-none">✓</span>
+                <div>
+                  <strong>3. Balance Both Multipliers:</strong> Pair infrastructure (immediate jobs) with education & R&D (structural wealth in Rounds 4–5).
                 </div>
+              </div>
 
-                <div class="flex items-start gap-2 bg-[#F7F4EB] p-2 border border-[#1E1E1E]">
-                  <span class="text-[#2A9D8F] font-bold text-base leading-none">✓</span>
-                  <div>
-                    <strong>4. Root Cause vs Handout:</strong> Does your crisis choice solve the structural disease, or is it just a temporary populist bandage?
-                  </div>
+              <div class="flex items-start gap-2 bg-[#F7F4EB] p-2 border border-[#1E1E1E]">
+                <span class="text-[#2A9D8F] font-bold text-sm leading-none">✓</span>
+                <div>
+                  <strong>4. Cure the Disease, Not the Symptom:</strong> Don't pick short-term populist handouts when a crisis demands structural reform.
                 </div>
               </div>
             </div>
 
-            <div class="text-center pt-2">
-              <a href="./index.html" class="inline-block bg-[#E04F3E] text-white font-mono font-extrabold text-sm uppercase px-10 py-3 shadow-brutal-lg hover:bg-[#1E1E1E] transition transform hover:-translate-y-0.5">
-                🏛️ Enter Simulation Room & Begin Practical Game →
+            <div class="text-center pt-1">
+              <a href="./index.html" class="inline-block bg-[#E04F3E] text-white font-mono font-extrabold text-sm uppercase px-8 py-2.5 shadow-brutal-lg hover:bg-[#1E1E1E] transition transform hover:-translate-y-0.5">
+                🏛️ Enter Simulation Room & Begin Round 1 →
               </a>
             </div>
           </div>
         `,
-        notes: `Wrap up the lecture. Wish all teams good luck. Remind them: the winner is the team with the most optimal policy decisions (out of 5) and highest capital growth, not the country with the biggest starting balance!`
+        notes: `Wish everyone good luck. Encourage teams to discuss each crisis decision among themselves before clicking execute.`
       }
     ];
 
