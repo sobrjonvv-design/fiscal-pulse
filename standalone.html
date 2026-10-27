@@ -227,7 +227,7 @@
             optimalOptionId: 'A',
             options: [
               { id: 'A', label: 'Bank Recapitalization & EU Youth Tech Vouchers', description: 'Recapitalize systemic banks using dedicated ESM funds while deploying EU regional subsidies for youth apprenticeships.', rationale: 'Restored liquidity to domestic lenders and began checking brain drain.', effects: { treasuryDelta: 550, gdpGrowthDelta: 1.8, unemploymentDelta: -2.5, humanCapitalDelta: 2.2, approvalDelta: 6.0 } },
-              { id: 'B', label: 'Raise Statutory Corporate Income Tax to 42% on Surviving Firms', description: 'Hike tax rates on formal domestic corporations to plug remaining social security deficits.', rationale: 'Suboptimal: Classic Laffer Curve disaster: hundreds of Greek companies relocated headquarters to Bulgaria and Cyprus overnight.', effects: { treasuryDelta: -250, complianceDelta: -0.09, gdpGrowthDelta: -2.8, unemploymentDelta: 1.8, approvalDelta: -9.0 } },
+              { id: 'B', label: 'Raise Statutory Corporate Income Tax to 42% on Surviving Firms', description: 'Hike tax rates on formal domestic corporations to plug remaining social security deficits.', rationale: 'Classic Laffer Curve disaster: hundreds of Greek companies relocated headquarters to Bulgaria and Cyprus overnight.', effects: { treasuryDelta: -250, complianceDelta: -0.09, gdpGrowthDelta: -2.8, unemploymentDelta: 1.8, approvalDelta: -9.0 } },
               { id: 'C', label: 'Expand Public Bureaucracy Patronage via Emergency T-Bills', description: 'Issue short-term 9% T-bills to re-hire laid-off municipal clerks.', rationale: 'Suboptimal: Sank the primary budget balance, jeopardizing official bailout disbursements.', effects: { treasuryDelta: -650, debtToGdpDelta: 6.5, gdpGrowthDelta: 0.4, approvalDelta: 3.0 } }
             ]
           },
@@ -468,13 +468,35 @@
     }
 
     // ========================================================================
-    // 3. MAIN REACT COMPONENT WITH REAL-TIME CLOUD SYNC & SCORING
+    // 3. MAIN REACT COMPONENT: PERSISTENT PROFILE ID & REAL-TIME INTERACTION
     // ========================================================================
     function App() {
-      const [myId] = useState(() => 'team_' + Math.random().toString(36).substr(2, 6));
+      // 1. Persistent Unique Device/Profile ID (Does NOT regenerate on F5 refresh!)
+      const [myId] = useState(() => {
+        let savedId = null;
+        try {
+          savedId = localStorage.getItem('fp_device_profile_id_v3');
+        } catch (e) {}
+        if (!savedId) {
+          savedId = 'team_' + Math.random().toString(36).substr(2, 7);
+          try {
+            localStorage.setItem('fp_device_profile_id_v3', savedId);
+          } catch (e) {}
+        }
+        return savedId;
+      });
+
+      // 2. Persistent Team Name
+      const [teamName, setTeamName] = useState(() => {
+        try {
+          const n = localStorage.getItem('fp_profile_team_name_v3');
+          if (n) return n;
+        } catch (e) {}
+        return 'Team Alpha: Treasury';
+      });
+
       const [viewMode, setViewMode] = useState('LOBBY');
       const [roomCode, setRoomCode] = useState('482-910');
-      const [teamName, setTeamName] = useState('Team Alpha: Treasury');
       const [selectedCaseId, setSelectedCaseId] = useState('singapore_1965');
       const [selectedCase, setSelectedCase] = useState(COUNTRY_CASES[0]);
 
@@ -486,7 +508,7 @@
       const [lastRoundExplanations, setLastRoundExplanations] = useState([]);
       const [wasLastOptimal, setWasLastOptimal] = useState(true);
 
-      // Scoring: Count of Optimal / Correct Policy Decisions (0 to 5)
+      // Scoring: Count of Optimal Decisions (0 to 5)
       const [correctAnswersCount, setCorrectAnswersCount] = useState(0);
 
       // Shared Cohort Teams Dictionary
@@ -499,38 +521,102 @@
       const mqttClientRef = useRef(null);
       const bcRef = useRef(null);
 
+      // --- BROADCAST FUNCTION ---
+      const broadcastTeamState = (overrideFields = {}) => {
+        const cleanRoom = (roomCode || '482-910').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+        const mqttTopic = `fiscal_pulse_v4/room_${cleanRoom}`;
+        const storageKey = `fp_teams_storage_v4_${cleanRoom}`;
+
+        const growth = Number((((currentStats.treasury - currentStats.initialTreasury) / currentStats.initialTreasury) * 100).toFixed(1));
+
+        const myTeamPayload = {
+          id: myId,
+          name: teamName || 'Unnamed Team',
+          roomCode: cleanRoom,
+          countryName: selectedCase.name,
+          round: currentStats.round,
+          treasury: currentStats.treasury,
+          capitalGrowthPct: growth,
+          correctAnswers: correctAnswersCount,
+          debtToGdp: currentStats.debtToGdp,
+          gdpGrowth: currentStats.gdpGrowth,
+          status: currentStats.budgetBalance >= 0 ? 'SURPLUS' : 'DEFICIT',
+          lastActive: Date.now(),
+          ...overrideFields
+        };
+
+        // Update local state and purge any ghost teams inactive > 18 seconds
+        setTeamsMap((prev) => {
+          const now = Date.now();
+          const next = {};
+          // Keep active teams only
+          Object.keys(prev).forEach((k) => {
+            if (now - (prev[k].lastActive || 0) < 18000) {
+              next[k] = prev[k];
+            }
+          });
+          next[myTeamPayload.id] = myTeamPayload;
+          try {
+            localStorage.setItem(storageKey, JSON.stringify(next));
+          } catch (e) {}
+          return next;
+        });
+
+        // Broadcast via BroadcastChannel
+        if (bcRef.current) {
+          try {
+            bcRef.current.postMessage({ type: 'TEAM_SYNC', team: myTeamPayload });
+          } catch (e) {}
+        }
+
+        // Broadcast via HiveMQ Cloud WebSocket
+        if (mqttClientRef.current && mqttClientRef.current.connected) {
+          try {
+            mqttClientRef.current.publish(mqttTopic, JSON.stringify({ type: 'TEAM_SYNC', team: myTeamPayload }));
+          } catch (e) {}
+        }
+      };
+
       // --- GLOBAL REAL-TIME CLOUD MQTT & BROADCASTCHANNEL SYNC ---
       useEffect(() => {
         const cleanRoom = (roomCode || '482-910').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
-        const mqttTopic = `fiscal_pulse_v3/room_${cleanRoom}`;
-        const storageKey = `fp_teams_storage_${cleanRoom}`;
+        const mqttTopic = `fiscal_pulse_v4/room_${cleanRoom}`;
+        const storageKey = `fp_teams_storage_v4_${cleanRoom}`;
 
-        // 1. Load LocalStorage Cache
+        // 1. Load LocalStorage Cache (pruning old dead sessions)
         try {
           const cached = localStorage.getItem(storageKey);
           if (cached) {
-            setTeamsMap(JSON.parse(cached));
+            const parsed = JSON.parse(cached);
+            const now = Date.now();
+            const fresh = {};
+            Object.keys(parsed).forEach(k => {
+              if (now - (parsed[k].lastActive || 0) < 18000) {
+                fresh[k] = parsed[k];
+              }
+            });
+            setTeamsMap(fresh);
           }
         } catch (e) {}
 
         // 2. Setup BroadcastChannel for Same-Browser Tabs
         try {
-          bcRef.current = new BroadcastChannel(`fp_bc_${cleanRoom}`);
+          bcRef.current = new BroadcastChannel(`fp_bc_v4_${cleanRoom}`);
           bcRef.current.onmessage = (event) => {
-            if (event.data && event.data.type === 'TEAM_SYNC') {
-              handleNewTeamData(event.data.team);
+            if (event.data && event.data.type === 'TEAM_SYNC' && event.data.team) {
+              mergeTeam(event.data.team);
             }
           };
         } catch (e) {}
 
-        // 3. Connect to Global Free Public HiveMQ WebSocket Broker
+        // 3. Connect to HiveMQ Public WebSocket Broker
         try {
           if (window.mqtt) {
             const client = window.mqtt.connect('wss://broker.hivemq.com:8884/mqtt', {
-              clientId: 'fp_' + myId + '_' + Math.random().toString(16).substr(2, 6),
+              clientId: 'fp4_' + myId + '_' + Math.random().toString(16).substr(2, 6),
               clean: true,
-              keepalive: 30,
-              reconnectPeriod: 2500,
+              keepalive: 25,
+              reconnectPeriod: 2000,
             });
 
             mqttClientRef.current = client;
@@ -538,15 +624,14 @@
             client.on('connect', () => {
               setCloudConnected(true);
               client.subscribe(mqttTopic, { qos: 0 });
-              // Announce presence immediately
-              sendHeartbeat();
+              broadcastTeamState();
             });
 
             client.on('message', (topic, payload) => {
               try {
                 const parsed = JSON.parse(payload.toString());
                 if (parsed.type === 'TEAM_SYNC' && parsed.team) {
-                  handleNewTeamData(parsed.team);
+                  mergeTeam(parsed.team);
                 }
               } catch (err) {}
             });
@@ -554,11 +639,8 @@
             client.on('offline', () => setCloudConnected(false));
             client.on('error', () => setCloudConnected(false));
           }
-        } catch (e) {
-          console.warn('MQTT connection error:', e);
-        }
+        } catch (e) {}
 
-        // 4. Cross-Window LocalStorage Event Listener
         const handleStorage = (e) => {
           if (e.key === storageKey && e.newValue) {
             try {
@@ -575,102 +657,64 @@
         };
       }, [roomCode, myId]);
 
-      // Helper to merge team data
-      const handleNewTeamData = (team) => {
+      // Merge team helper
+      const mergeTeam = (team) => {
         setTeamsMap((prev) => {
           const next = { ...prev, [team.id]: team };
           const cleanRoom = (roomCode || '482-910').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
           try {
-            localStorage.setItem(`fp_teams_storage_${cleanRoom}`, JSON.stringify(next));
+            localStorage.setItem(`fp_teams_storage_v4_${cleanRoom}`, JSON.stringify(next));
           } catch (e) {}
           return next;
         });
       };
 
-      // Broadcast state to all channels (MQTT + BroadcastChannel + LocalStorage)
-      const broadcastTeamState = (teamObj) => {
-        const cleanRoom = (roomCode || '482-910').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
-        const mqttTopic = `fiscal_pulse_v3/room_${cleanRoom}`;
-        const storageKey = `fp_teams_storage_${cleanRoom}`;
-
-        // Local state
-        setTeamsMap((prev) => {
-          const next = { ...prev, [teamObj.id]: teamObj };
-          try {
-            localStorage.setItem(storageKey, JSON.stringify(next));
-          } catch (e) {}
-          return next;
-        });
-
-        // BroadcastChannel
-        if (bcRef.current) {
-          try {
-            bcRef.current.postMessage({ type: 'TEAM_SYNC', team: teamObj });
-          } catch (e) {}
-        }
-
-        // MQTT Cloud WebSocket
-        if (mqttClientRef.current && mqttClientRef.current.connected) {
-          try {
-            mqttClientRef.current.publish(mqttTopic, JSON.stringify({ type: 'TEAM_SYNC', team: teamObj }));
-          } catch (e) {}
-        }
-      };
-
-      const sendHeartbeat = () => {
-        const growth = Number((((currentStats.treasury - currentStats.initialTreasury) / currentStats.initialTreasury) * 100).toFixed(1));
-        const myTeam = {
-          id: myId,
-          name: teamName || 'Unnamed Team',
-          roomCode: (roomCode || '482-910').trim().toUpperCase(),
-          countryName: selectedCase.name,
-          round: currentStats.round,
-          treasury: currentStats.treasury,
-          capitalGrowthPct: growth,
-          correctAnswers: correctAnswersCount,
-          debtToGdp: currentStats.debtToGdp,
-          gdpGrowth: currentStats.gdpGrowth,
-          status: currentStats.budgetBalance >= 0 ? 'SURPLUS' : 'DEFICIT',
-          lastActive: Date.now()
-        };
-        broadcastTeamState(myTeam);
-      };
-
-      // Periodic heartbeat sync
+      // Heartbeat pulse every 3 seconds to keep session alive and prune disconnected teams
       useEffect(() => {
-        sendHeartbeat();
-        const interval = setInterval(sendHeartbeat, 5000);
+        broadcastTeamState();
+        const interval = setInterval(() => {
+          broadcastTeamState();
+        }, 3000);
         return () => clearInterval(interval);
       }, [teamName, roomCode, currentStats, correctAnswersCount, selectedCase]);
 
-      // Start Game
-      const startGame = (cCase) => {
+      // --- USER ACTIONS ---
+      // 1. Instant Country Case Click: Immediately changes state and broadcasts to all peers!
+      const handleSelectCase = (cCase) => {
+        setSelectedCaseId(cCase.id);
         setSelectedCase(cCase);
         setCurrentStats(cCase.initialStats);
         setHistory([cCase.initialStats]);
         setAllocations(cCase.defaultAllocations);
         setSelectedShockId('A');
-        setCorrectAnswersCount(0);
 
-        const myTeam = {
-          id: myId,
-          name: teamName || 'Unnamed Team',
-          roomCode: (roomCode || '482-910').trim().toUpperCase(),
+        // Broadcast immediately so other tabs see the country change in real time!
+        broadcastTeamState({
           countryName: cCase.name,
-          round: 1,
           treasury: cCase.initialStats.treasury,
-          capitalGrowthPct: 0,
-          correctAnswers: 0,
+          gdp: cCase.initialStats.gdp,
           debtToGdp: cCase.initialStats.debtToGdp,
-          gdpGrowth: cCase.initialStats.gdpGrowth,
-          status: cCase.initialStats.budgetBalance >= 0 ? 'SURPLUS' : 'DEFICIT',
-          lastActive: Date.now()
-        };
-        broadcastTeamState(myTeam);
+          capitalGrowthPct: 0
+        });
+      };
+
+      // 2. Team Name Change: Immediately saves and broadcasts
+      const handleNameChange = (e) => {
+        const val = e.target.value;
+        setTeamName(val);
+        try {
+          localStorage.setItem('fp_profile_team_name_v3', val);
+        } catch (err) {}
+        broadcastTeamState({ name: val });
+      };
+
+      // 3. Start Game
+      const startGame = () => {
+        broadcastTeamState({ round: 1 });
         setViewMode('DASHBOARD');
       };
 
-      // Execute Fiscal Round & Check Optimal Policy Answer
+      // 4. Execute Fiscal Round & Check Optimal Policy Answer
       const handleConfirmShock = () => {
         const option = currentShock.options.find(o => o.id === selectedShockId) || currentShock.options[0];
         const isOptimal = selectedShockId === currentShock.optimalOptionId;
@@ -684,21 +728,16 @@
         setHistory(prev => [...prev, res.nextState]);
         setLastRoundExplanations(res.explanations);
 
-        const myTeam = {
-          id: myId,
-          name: teamName || 'Unnamed Team',
-          roomCode: (roomCode || '482-910').trim().toUpperCase(),
-          countryName: selectedCase.name,
+        broadcastTeamState({
           round: res.nextState.round,
           treasury: res.nextState.treasury,
           capitalGrowthPct: res.capitalGrowthPct,
           correctAnswers: newCorrectCount,
           debtToGdp: res.nextState.debtToGdp,
           gdpGrowth: res.nextState.gdpGrowth,
-          status: res.fiscalStatus,
-          lastActive: Date.now()
-        };
-        broadcastTeamState(myTeam);
+          status: res.fiscalStatus
+        });
+
         setViewMode('ROUND_FEEDBACK');
       };
 
@@ -711,24 +750,31 @@
         }
       };
 
-      // Leaderboard Ranking: 1) Correct Optimal Decisions (out of 5), 2) Capital Growth %, 3) Debt Control
+      // Leaderboard Ranking: Clean list without phantom duplicates!
       const sortedTeams = useMemo(() => {
-        const list = Object.values(teamsMap);
-        if (list.length === 0) {
-          const growth = Number((((currentStats.treasury - currentStats.initialTreasury) / currentStats.initialTreasury) * 100).toFixed(1));
-          return [{
-            id: myId,
-            name: teamName,
-            countryName: selectedCase.name,
-            round: currentStats.round,
-            treasury: currentStats.treasury,
-            capitalGrowthPct: growth,
-            correctAnswers: correctAnswersCount,
-            debtToGdp: currentStats.debtToGdp,
-            status: 'SURPLUS'
-          }];
-        }
-        return list.sort((a, b) => {
+        const now = Date.now();
+        // Filter out any team with no heartbeat in the last 18 seconds
+        const activeList = Object.values(teamsMap).filter(t => t.id === myId || (now - (t.lastActive || 0) < 18000));
+
+        // Ensure current user is always present with latest active values
+        const growth = Number((((currentStats.treasury - currentStats.initialTreasury) / currentStats.initialTreasury) * 100).toFixed(1));
+        const myTeamObj = {
+          id: myId,
+          name: teamName || 'Unnamed Team',
+          countryName: selectedCase.name,
+          round: currentStats.round,
+          treasury: currentStats.treasury,
+          capitalGrowthPct: growth,
+          correctAnswers: correctAnswersCount,
+          debtToGdp: currentStats.debtToGdp,
+          status: currentStats.budgetBalance >= 0 ? 'SURPLUS' : 'DEFICIT',
+          lastActive: now
+        };
+
+        const mapWithoutMe = activeList.filter(t => t.id !== myId);
+        const finalList = [myTeamObj, ...mapWithoutMe];
+
+        return finalList.sort((a, b) => {
           if ((b.correctAnswers || 0) !== (a.correctAnswers || 0)) {
             return (b.correctAnswers || 0) - (a.correctAnswers || 0);
           }
@@ -785,12 +831,12 @@
               </div>
             </div>
 
-            {/* Country Cards Grid */}
+            {/* Country Cards Grid: Clicking changes case instantly in real-time across peers */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {COUNTRY_CASES.map(c => (
                 <div
                   key={c.id}
-                  onClick={() => setSelectedCaseId(c.id)}
+                  onClick={() => handleSelectCase(c)}
                   className={`cursor-pointer border border-[#1E1E1E] p-4 bg-[#FFFFFF] transition ${
                     selectedCaseId === c.id ? 'shadow-brutal ring-2 ring-[#1E1E1E]' : 'hover:bg-[#FAF8F2]'
                   }`}
@@ -810,7 +856,7 @@
               ))}
             </div>
 
-            {/* Live Connected Teams Roster */}
+            {/* Live Connected Teams Roster (Cleaned, no duplicates!) */}
             <div className="border border-[#1E1E1E] bg-[#FFFFFF] p-5 shadow-brutal space-y-3">
               <div className="flex justify-between items-center border-b border-[#1E1E1E] pb-2">
                 <span className="font-mono font-bold text-xs uppercase text-[#1E1E1E]">
@@ -823,7 +869,7 @@
                   <div key={t.id} className={`p-2.5 border border-[#1E1E1E] flex justify-between items-center ${t.id === myId ? 'bg-[#E9C46A]/25 ring-1 ring-[#1E1E1E]' : 'bg-[#F7F4EB]'}`}>
                     <div>
                       <div className="font-bold text-[#1E1E1E]">#{idx + 1} {t.name} {t.id === myId && '(You)'}</div>
-                      <div className="text-[10px] text-[#264653]">{t.countryName || 'Selected Case'}</div>
+                      <div className="text-[10px] text-[#264653] font-semibold">{t.countryName || selectedCase.name}</div>
                     </div>
                     <span className="text-[10px] bg-[#1E1E1E] text-white px-1.5 py-0.5 uppercase font-bold">Ready</span>
                   </div>
@@ -838,13 +884,13 @@
                 <input
                   type="text"
                   value={teamName}
-                  onChange={e => setTeamName(e.target.value)}
+                  onChange={handleNameChange}
                   placeholder="Enter Team Name"
                   className="border border-[#1E1E1E] px-3 py-1.5 text-xs font-mono w-64 font-bold focus:outline-none"
                 />
               </div>
               <button
-                onClick={() => startGame(COUNTRY_CASES.find(c => c.id === selectedCaseId) || COUNTRY_CASES[0])}
+                onClick={startGame}
                 className="w-full sm:w-auto bg-[#1E1E1E] text-white font-mono font-bold text-xs uppercase px-8 py-2.5 shadow-brutal hover:bg-[#264653] transition"
               >
                 Start Fiscal Simulation →
