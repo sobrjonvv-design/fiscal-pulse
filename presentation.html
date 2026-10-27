@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fiscal Architecture & Macroeconomic Governance — Presentation Deck</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Space Grotesk & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Space+Grotesk:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Space Grotesk', -apple-system, sans-serif;
+      background-color: #FAF8F2;
+      color: #1E1E1E;
+      user-select: none;
+    }
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .shadow-brutal {
+      box-shadow: 4px 4px 0px #1E1E1E;
+    }
+    .shadow-brutal-sm {
+      box-shadow: 2px 2px 0px #1E1E1E;
+    }
+    .shadow-brutal-lg {
+      box-shadow: 6px 6px 0px #1E1E1E;
+    }
+    .slide-enter {
+      animation: slideIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.99);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+    /* Hide scrollbars during presentation mode */
+    ::-webkit-scrollbar {
+      display: none;
+    }
+  </style>
+</head>
+<body class="h-screen w-screen overflow-hidden flex flex-col justify-between">
+
+  <!-- TOP PROGRESS BAR & HEADER STRIP -->
+  <header class="border-b-2 border-[#1E1E1E] bg-[#FFFFFF] px-4 py-2 flex justify-between items-center z-20">
+    <div class="flex items-center gap-3">
+      <span class="bg-[#E04F3E] text-white px-2 py-0.5 text-xs font-mono font-bold uppercase tracking-wider">
+        Fiscal Pulse Workshop
+      </span>
+      <span class="font-mono text-xs font-bold text-[#1E1E1E] hidden sm:inline">
+        Macroeconomic Governance & Fiscal Architecture
+      </span>
+    </div>
+    
+    <!-- Controls & Status -->
+    <div class="flex items-center gap-2 font-mono text-xs">
+      <button id="toggleNotesBtn" onclick="toggleSpeakerNotes()" class="border border-[#1E1E1E] bg-[#F7F4EB] px-2.5 py-1 font-bold hover:bg-[#E9C46A] transition hidden md:flex items-center gap-1">
+        <span>💡</span> <span id="notesBtnLabel">Speaker Notes (N)</span>
+      </button>
+      <button id="toggleIndexBtn" onclick="toggleIndexModal()" class="border border-[#1E1E1E] bg-[#F7F4EB] px-2.5 py-1 font-bold hover:bg-[#E9C46A] transition flex items-center gap-1">
+        <span>📑</span> <span>Agenda (G)</span>
+      </button>
+      <button onclick="toggleFullScreen()" class="border border-[#1E1E1E] bg-[#F7F4EB] px-2.5 py-1 font-bold hover:bg-[#E9C46A] transition flex items-center gap-1">
+        <span>⛶</span> <span class="hidden sm:inline">Fullscreen (F)</span>
+      </button>
+      <span class="border-2 border-[#1E1E1E] bg-[#E9C46A] px-3 py-1 font-extrabold" id="slideIndicator">
+        01 / 11
+      </span>
+    </div>
+  </header>
+
+  <!-- PROGRESS TRACK -->
+  <div class="w-full bg-[#E5E0D5] h-1.5 border-b border-[#1E1E1E]">
+    <div id="progressBar" class="bg-[#2A9D8F] h-full transition-all duration-300 ease-out" style="width: 9%;"></div>
+  </div>
+
+  <!-- MAIN SLIDE STAGE -->
+  <main id="slideContainer" class="flex-1 w-full max-w-7xl mx-auto p-4 md:p-8 flex items-center justify-center overflow-y-auto">
+    <!-- Slide content injected here dynamically -->
+  </main>
+
+  <!-- SPEAKER NOTES POPUP DRAWER (COLLAPSIBLE) -->
+  <div id="speakerNotesDrawer" class="hidden border-t-2 border-[#1E1E1E] bg-[#F7F4EB] p-4 text-xs font-mono text-[#1E1E1E] shadow-brutal-lg max-h-48 overflow-y-auto z-30">
+    <div class="flex justify-between items-center mb-1">
+      <span class="font-bold uppercase tracking-wider text-[#E04F3E] flex items-center gap-1">
+        <span>🎙️</span> Presenter Briefing & Pedagogical Talking Points:
+      </span>
+      <button onclick="toggleSpeakerNotes()" class="text-xs font-bold px-2 py-0.5 bg-[#1E1E1E] text-white">Close (N)</button>
+    </div>
+    <div id="speakerNotesContent" class="leading-relaxed">
+      <!-- Notes injected here -->
+    </div>
+  </div>
+
+  <!-- BOTTOM NAVIGATION DOCK -->
+  <footer class="border-t-2 border-[#1E1E1E] bg-[#FFFFFF] px-4 py-2.5 flex justify-between items-center z-20">
+    <div class="text-xs font-mono text-[#264653] hidden sm:block">
+      Use <kbd class="px-1.5 py-0.5 border border-[#1E1E1E] bg-slate-100 font-bold">←</kbd> <kbd class="px-1.5 py-0.5 border border-[#1E1E1E] bg-slate-100 font-bold">→</kbd> or <kbd class="px-1.5 py-0.5 border border-[#1E1E1E] bg-slate-100 font-bold">Space</kbd> to navigate
+    </div>
+
+    <div class="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+      <button onclick="prevSlide()" id="prevBtn" class="border-2 border-[#1E1E1E] bg-[#FFFFFF] px-4 py-1.5 font-mono text-xs font-bold uppercase shadow-brutal-sm hover:bg-[#FAF8F2] active:translate-x-0.5 active:translate-y-0.5 transition flex items-center gap-1">
+        ← Previous
+      </button>
+
+      <span id="slideTitleMini" class="font-mono text-xs font-bold text-[#1E1E1E] truncate max-w-xs sm:max-w-md text-center">
+        1. Executive Title
+      </span>
+
+      <button onclick="nextSlide()" id="nextBtn" class="border-2 border-[#1E1E1E] bg-[#1E1E1E] text-white px-5 py-1.5 font-mono text-xs font-bold uppercase shadow-brutal-sm hover:bg-[#2A9D8F] active:translate-x-0.5 active:translate-y-0.5 transition flex items-center gap-1">
+        Next →
+      </button>
+    </div>
+  </footer>
+
+  <!-- AGENDA / MODAL JUMP MODAL -->
+  <div id="indexModal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+    <div class="bg-white border-2 border-[#1E1E1E] max-w-2xl w-full p-6 shadow-brutal-lg space-y-4">
+      <div class="flex justify-between items-center border-b-2 border-[#1E1E1E] pb-2">
+        <h3 class="font-mono font-bold text-base uppercase">Presentation Agenda & Slide Index</h3>
+        <button onclick="toggleIndexModal()" class="font-mono font-bold px-2 py-0.5 bg-[#1E1E1E] text-white text-xs">✕ Close</button>
+      </div>
+      <div id="indexGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-2 font-mono text-xs max-h-96 overflow-y-auto">
+        <!-- Index buttons injected -->
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDES DATA & APPLICATION LOGIC -->
+  <script>
+    const SLIDES = [
+      // -------------------------------------------------------------
+      // SLIDE 1: Title & Executive Introduction
+      // -------------------------------------------------------------
+      {
+        id: 'title',
+        badge: 'Executive Briefing',
+        title: 'Macroeconomic Governance & Fiscal Architecture',
+        subtitle: 'How Sovereign States Manage Public Wealth, Debt Servicing, and Structural Shocks',
+        image: 'https://images.unsplash.com/photo-1541872703-74c5e44368f9?auto=format&fit=crop&w=1200&q=80',
+        imageCaption: 'The Sovereign Treasury: The intersection of democratic mandates and hard fiscal limits.',
+        contentHtml: `
+          <div class="space-y-4">
+            <p class="text-sm md:text-base leading-relaxed text-[#264653]">
+              A nation's budget is not merely a collection of arithmetic balances—it is the 
+              <strong>supreme operational manifestation of state policy</strong>. Every fiscal choice simultaneously alters 
+              aggregate demand, incentives to invest, inflation, currency stability, and intergenerational solvency.
+            </p>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 font-mono text-xs pt-2">
+              <div class="border-2 border-[#1E1E1E] bg-[#FFFFFF] p-3 shadow-brutal-sm">
+                <span class="text-[#E04F3E] font-bold block text-sm">PART I</span>
+                <strong class="text-[#1E1E1E]">Fiscal Theory & Mechanics</strong>
+                <p class="text-[11px] text-[#264653] mt-1">Laffer curves, multipliers, debt thresholds, and growth lags.</p>
+              </div>
+              <div class="border-2 border-[#1E1E1E] bg-[#FFFFFF] p-3 shadow-brutal-sm">
+                <span class="text-[#2A9D8F] font-bold block text-sm">PART II</span>
+                <strong class="text-[#1E1E1E]">4 Historical Archetypes</strong>
+                <p class="text-[11px] text-[#264653] mt-1">Singapore 1965, Norway 1975, Greece 2009, Germany 1948.</p>
+              </div>
+              <div class="border-2 border-[#1E1E1E] bg-[#E9C46A] p-3 shadow-brutal-sm">
+                <span class="text-[#1E1E1E] font-bold block text-sm">PART III</span>
+                <strong class="text-[#1E1E1E]">Classroom Simulation</strong>
+                <p class="text-[11px] text-[#1E1E1E] mt-1">Real-time multiplayer decision combat in <em>Fiscal Pulse</em>.</p>
+              </div>
+            </div>
+          </div>
+        `,
+        notes: `Welcome everyone to the Fiscal Architecture Workshop. Explain that students are stepping into the shoes of the Sovereign Economic Council. Highlight that public finances are governed by trade-offs: every dollar spent must be financed through taxation, sovereign borrowing, or monetary expansion, each carrying real economic friction.`
+      },
+
+      // -------------------------------------------------------------
+      // SLIDE 2: The Core Mandate — The Fiscal Equation
+      // -------------------------------------------------------------
+      {
+        id: 'equation',
+        badge: 'Theoretical Foundation',
+        title: 'The Sovereign Fiscal Equation: State vs Household',
+        subtitle: 'Why a government budget is fundamentally different from a corporate ledger',
+        image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=80',
+        imageCaption: 'The Sovereign State exercises taxation monopoly and currency authority, but cannot escape intertemporal solvency.',
+        contentHtml: `
+          <div class="space-y-4">
+            <div class="border-2 border-[#1E1E1E] bg-[#FFFFFF] p-4 shadow-brutal font-mono text-center">
+              <span class="text-xs uppercase text-[#264653] font-bold block">The Intertemporal Budget Constraint</span>
+              <div class="text-lg md:text-2xl font-extrabold text-[#1E1E1E] mt-1">
+                \\( \\underbrace{\\text{Revenues }(T) + \\text{Borrowing }(B)}_{\\text{Inflows}} = \\underbrace{\\text{Outlays }(G) + \\text{Debt Service }(r \\cdot D)}_{\\text{Expenditures}} \\)
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs leading-relaxed">
+              <div class="border border-[#1E1E1E] bg-[#FFFFFF] p-3 shadow-brutal-sm">
+                <h4 class="font-bold text-sm text-[#E04F3E] font-mono mb-1">✕ The "Household Fallacy"</h4>
+                <p class="text-[#264653]">
+                  A private household must live within its earnings. When a household cuts spending, it saves cash. 
+                  However, when a sovereign government cuts spending indiscriminately, it directly <strong>depresses national income (GDP)</strong>, 
+                  which shrinks the future tax base and causes unemployment to surge.
+                </p>
+              </div>
+
+              <div class="border border-[#1E1E1E] bg-[#FFFFFF] p-3 shadow-brutal-sm">
+                <h4 class="font-bold text-sm text-[#2A9D8F] font-mono mb-1">✓ The Macroeconomic Reality</h4>
+                <p class="text-[#264653]">
+                  The government is the macroeconomic counter-weight. Its mandate is counter-cyclical: 
+                  accumulate surpluses during economic booms to build fiscal reserves, and deploy targeted fiscal capital 
+                  during recessions to prevent deflationary collapse.
+                </p>
+              </div>
+            </div>
+          </div>
+        `,
+        notes: `Emphasize Keynes's 'Paradox of Thrift': when everyone tries to save at once during a panic, aggregate demand collapses unless the state provides counter-cyclical stabilization. But remind students that counter-cyclical spending is NOT free—it requires discipline during good years.`
+      },
+
+      // -------------------------------------------------------------
+      // SLIDE 3: Revenue Architecture & The Laffer Paradox
+      // -------------------------------------------------------------
+      {
+        id: 'revenue',
+        badge: 'Taxation Economics',
+        title: 'Taxation Architecture: The Laffer Paradox',
+        subtitle: 'Why higher nominal tax rates often lead to lower fiscal receipts',
+        image: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=1200&q=80',
+        imageCaption: 'The Laffer Curve proves that tax revenues peak at optimal statutory rates; punitive rates induce flight.',
+        contentHtml: `
+          <div class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 font-mono text-xs">
+              <div class="border border-[#1E1E1E] bg-[#FFFFFF] p-3 shadow-brutal-sm">
+                <span class="text-[#1E1E1E] font-bold block text-sm">Corporate Tax (CIT)</span>
+                <span class="text-[#2A9D8F] font-bold">Optimal: 20% – 25%</span>
+                <p class="text-[11px] text-[#264653] mt-1.5 leading-normal">
+                  Above 28%, capital mobility triggers immediate headquarter relocation to low-friction jurisdictions (e.g., Greece to Cyprus/Bulgaria).
+                </p>
+              </div>
+
+              <div class="border border-[#1E1E1E] bg-[#FFFFFF] p-3 shadow-brutal-sm">
+                <span class="text-[#1E1E1E] font-bold block text-sm">Personal Income Tax (PIT)</span>
+                <span class="text-[#2A9D8F] font-bold">Broadest Stable Base</span>
+                <p class="text-[11px] text-[#264653] mt-1.5 leading-normal">
+                  Progressive brackets capture economic surplus, but excessive marginal rates penalize labor productivity and incentivize cash shadow economies.
+                </p>
+              </div>
+
+              <div class="border border-[#1E1E1E] bg-[#FFFFFF] p-3 shadow-brutal-sm">
+                <span class="text-[#1E1E1E] font-bold block text-sm">VAT / Consumption Tax</span>
+                <span class="text-[#E04F3E] font-bold">Inflation Conduit</span>
+                <p class="text-[11px] text-[#264653] mt-1.5 leading-normal">
+                  Highly efficient, zero capital flight. However, rates > 18% pass 100% into consumer prices, penalizing low-income consumption.
+                </p>
+              </div>
+            </div>
+
+            <div class="border-2 border-[#1E1E1E] bg-[#F7F4EB] p-3 font-mono text-xs flex items-center justify-between">
+              <div>
+                <strong class="text-[#1E1E1E] uppercase">Core Policy Lesson:</strong>
+                <span class="text-[#264653] ml-1">Expanding tax compliance and digitization collects more revenue than hiking punitive tax rates!</span>
+              </div>
+              <span class="bg-[#1E1E1E] text-white px-2 py-0.5 font-bold uppercase text-[10px]">Rule of Thumb</span>
+            </div>
+          </div>
+        `,
+        notes: `Walk through the Laffer Curve intuition. If the tax rate is 0%, revenue is 0. If tax is 100%, nobody works legally, revenue is 0. In between lies the revenue-maximizing point T*. Tell students in Fiscal Pulse: don't slam corporate tax to 45% thinking you will solve your deficit; you will crash your GDP!`
+      },
+
+      // -------------------------------------------------------------
+      // SLIDE 4: Expenditure Dynamics & The Growth Lag
+      // -------------------------------------------------------------
+      {
+        id: 'expenditures',
+        badge: 'Growth Theory',
+        title: 'Expenditure Strategy: Keynes vs Solow-Romer',
+        subtitle: 'Differentiating between short-run demand stimulus and long-run structural productivity',
+        image: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=1200&q=80',
+        imageCaption: 'Capital expenditures in ports, energy, and digital grids expand the structural production frontier.',
+        contentHtml: `
+          <div class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <!-- Keynesian Multiplier -->
+              <div class="border-2 border-[#1E1E1E] bg-[#FFFFFF] p-4 shadow-brutal">
+                <div class="flex items-center justify-between border-b border-[#1E1E1E] pb-2 mb-2">
+                  <span class="font-mono font-bold text-sm text-[#E04F3E]">1. Keynesian Multiplier (1.45x)</span>
+                  <span class="text-[10px] font-mono bg-[#E04F3E] text-white px-1.5 py-0.5 font-bold uppercase">Immediate Impact</span>
+                </div>
+                <p class="text-xs text-[#264653] leading-relaxed">
+                  <strong>Infrastructure & Public Works:</strong> Injecting capital into roads, power grids, and ports puts idle contractors and engineers to work immediately. 
+                  Every dollar spent generates up to <strong>\$1.45</strong> of downstream consumer and industrial turnover.
+                </p>
+                <div class="mt-3 text-[11px] font-mono text-[#1E1E1E] bg-[#FAF8F2] p-2 border border-[#1E1E1E]">
+                  ⚡ <em>Primary Benefit:</em> Fast reduction of cyclical unemployment during recessions.
+                </div>
+              </div>
+
+              <!-- Solow-Romer Endogenous Growth -->
+              <div class="border-2 border-[#1E1E1E] bg-[#FFFFFF] p-4 shadow-brutal">
+                <div class="flex items-center justify-between border-b border-[#1E1E1E] pb-2 mb-2">
+                  <span class="font-mono font-bold text-sm text-[#2A9D8F]">2. Solow-Romer Growth (Human Capital)</span>
+                  <span class="text-[10px] font-mono bg-[#2A9D8F] text-white px-1.5 py-0.5 font-bold uppercase">2-3 Year Lag</span>
+                </div>
+                <p class="text-xs text-[#264653] leading-relaxed">
+                  <strong>STEM Education & Applied R&D:</strong> Training biomedical scientists, coders, and technical apprentices does not raise GDP in year 1. 
+                  However, it unlocks structural <strong>Total Factor Productivity (TFP)</strong> compounding in years 3 to 5.
+                </p>
+                <div class="mt-3 text-[11px] font-mono text-[#1E1E1E] bg-[#FAF8F2] p-2 border border-[#1E1E1E]">
+                  🌱 <em>Primary Benefit:</em> Permanent shift in potential output and high-wage exports.
+                </div>
+              </div>
+            </div>
+
+            <p class="text-xs text-[#264653] font-mono text-center">
+              A balanced national budget must deploy <strong>both</strong>: infrastructure for immediate stabilization, and R&D for future wealth.
+            </p>
+          </div>
+        `,
+        notes: `Explain the timing mismatch: politicians love infrastructure because ribbon-cutting ceremonies happen in 12 months. R&D takes years to pay off, so weak governments often cut education first during austerity, which secretly destroys the nation's future economic engine.`
+      },
+
+      // -------------------------------------------------------------
+      // SLIDE 5: Sovereign Debt Solvency & The Default Trap
+      // -------------------------------------------------------------
+      {
+        id: 'debt',
+        badge: 'Financial Stability',
+        title: 'Sovereign Debt, Solvency & The Default Trap',
+        subtitle: 'The delicate arithmetic of borrowing, interest rates, and debt-to-GDP ratios',
+        image: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=1200&q=80',
+        imageCaption: 'Bond markets ruthlessly punish fiscal opacity and unhedged sovereign debt expansion.',
+        contentHtml: `
+          <div class="space-y-4">
+            <div class="border-2 border-[#1E1E1E] bg-[#FFFFFF] p-4 shadow-brutal flex flex-col md:flex-row justify-between items-center gap-4">
+              <div>
+                <span class="text-xs font-mono font-bold uppercase text-[#E04F3E]">The Golden Rule of Debt Dynamics</span>
+                <h3 class="text-lg md:text-xl font-mono font-extrabold text-[#1E1E1E] mt-0.5">
+                  \\( \\Delta \\left(\\frac{\\text{Debt}}{\\text{GDP}}\\right) \\approx (r - g) \\cdot d_0 - \\text{Primary Surplus} \\)
+                </h3>
+                <p class="text-xs text-[#264653] font-mono mt-1">
+                  Where \\( r \\) is real interest rate, \\( g \\) is real GDP growth, and \\( d_0 \\) is baseline debt ratio.
+                </p>
+              </div>
+
+              <div class="bg-[#F7F4EB] border border-[#1E1E1E] p-3 text-center shrink-0 w-full md:w-56 font-mono text-xs">
+                <div class="text-[10px] uppercase font-bold text-[#264653]">Critical Danger Zone</div>
+                <div class="text-2xl font-extrabold text-[#E04F3E] mt-0.5">r > g</div>
+                <div class="text-[10px] text-[#264653]">Debt grows faster than national income!</div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs leading-relaxed">
+              <div class="border border-[#1E1E1E] bg-[#FFFFFF] p-3">
+                <strong class="font-mono text-sm text-[#E04F3E] block mb-1">Mandatory Debt Servicing:</strong>
+                If a nation pays less than required interest (*Mandatory Interest Due*), international rating agencies instantly downgrade sovereign bonds to junk status. 
+                Yield spreads spike, capital flees, and domestic banks holding state paper face insolvency.
+              </div>
+
+              <div class="border border-[#1E1E1E] bg-[#FFFFFF] p-3">
+                <strong class="font-mono text-sm text-[#2A9D8F] block mb-1">Growth-Driven Consolidation:</strong>
+                The most sustainable way to lower Debt-to-GDP is not brutal deflationary cuts, but <strong>expanding the denominator (GDP)</strong> 
+                through high-multiplier investments that outpace borrowing costs.
+              </div>
+            </div>
+          </div>
+        `,
+        notes: `Clarify that debt is not inherently evil. Productive debt used to finance ports or tech universities pays for itself. Destructive debt is borrowing at high interest rates simply to pay recurring government salaries or subsidize consumer fuel.`
+      },
+
+      // -------------------------------------------------------------
+      // SLIDE 6: Case Study 1 — Singapore 1965
+      // -------------------------------------------------------------
+      {
+        id: 'singapore',
+        badge: 'Historical Archetype 01',
+        title: 'Case Study: Singapore 1965 (Resource Scarcity)',
+        subtitle: 'How an impoverished island transformed into a global maritime and high-tech powerhouse',
+        image: 'https://images.unsplash.com/photo-1565967511849-76a60a516170?auto=format&fit=crop&w=1200&q=80',
+        imageCaption: 'Jurong Port: Transforming swampy coastline into the premier transshipment and petrochemical hub.',
+        contentHtml: `
+          <div class="space-y-4">
+            <div class="border-2 border-[#1E1E1E] bg-[#FFFFFF] p-4 shadow-brutal grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <span class="text-xs font-mono font-bold uppercase text-[#E04F3E]">Baseline Crises (1965):</span>
+                <ul class="list-disc list-inside text-xs text-[#264653] space-y-1.5 mt-2 leading-relaxed">
+                  <li><strong>Sudden Independence:</strong> Expelled from the Malaysian Common Market; zero domestic hinterland.</li>
+                  <li><strong>British Military Exit:</strong> British naval garrisons, which generated <strong>20% of GDP</strong> and 30,000 jobs, announced total withdrawal.</li>
+                  <li><strong>Unemployment at 14%:</strong> Widespread urban poverty, squatter slums, and racial civil riots.</li>
+                </ul>
+              </div>
+
+              <div class="bg-[#F7F4EB] border border-[#1E1E1E] p-3 text-xs leading-relaxed">
+                <span class="text-xs font-mono font-bold uppercase text-[#2A9D8F]">The Master Strategy:</span>
+                <p class="mt-2 text-[#264653]">
+                  <strong>1. Open-Door Foreign Direct Investment (FDI):</strong> Created the Economic Development Board (EDB) to attract American and Japanese multinational corporations (Texas Instruments, National Semiconductor).
+                </p>
+                <p class="mt-2 text-[#264653]">
+                  <strong>2. Jurong Industrial Infrastructure:</strong> Massive public works turning mudflats into deep-water berths and export-processing zones.
+                </p>
+                <p class="mt-2 text-[#264653]">
+                  <strong>3. The Anti-Tariff Stance:</strong> Refused protectionist import substitution; embraced 100% unilateral free trade.
+                </p>
+              </div>
+            </div>
+
+            <div class="bg-[#E9C46A]/20 border border-[#1E1E1E] p-2.5 font-mono text-xs text-[#1E1E1E]">
+              💡 <strong>Game Lesson:</strong> As Singapore, never implement import tariffs or consumer fuel subsidies. Prioritize Jurong infrastructure, open port logistics, and technical vocational schooling!
+            </div>
+          </div>
+        `,
+        notes: `Highlight to the class: When Singapore was kicked out of Malaysia, economists predicted it could not survive. Lee Kuan Yew and Goh Keng Swee leapfrogged the region by tying Singapore directly to developed Western markets.`
+      },
+
+      // -------------------------------------------------------------
+      // SLIDE 7: Case Study 2 — Norway 1975
+      // -------------------------------------------------------------
+      {
+        id: 'norway',
+        badge: 'Historical Archetype 02',
+        title: 'Case Study: Norway 1975 (Managing Resource Wealth)',
+        subtitle: 'Defeating "Dutch Disease" through institutional sovereign wealth sterilization',
+        image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80',
+        imageCaption: 'The North Sea oil boom: Balancing hydrocarbon bonanzas with long-term macroeconomic stability.',
+        contentHtml: `
+          <div class="space-y-4">
+            <div class="border-2 border-[#1E1E1E] bg-[#FFFFFF] p-4 shadow-brutal grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <span class="text-xs font-mono font-bold uppercase text-[#E04F3E]">The Trap: "Dutch Disease"</span>
+                <p class="text-xs text-[#264653] mt-2 leading-relaxed">
+                  When a nation discovers vast natural resources, massive foreign capital floods in to purchase the commodity. 
+                  This causes the <strong>national currency to dramatically appreciate</strong>. 
+                  Domestic non-resource factories (manufacturing, agriculture, timber) become instantly uncompetitive and go bankrupt.
+                </p>
+                <div class="mt-2 text-xs font-mono text-[#E04F3E]">
+                  Result: Total economic dependency on a volatile single commodity!
+                </div>
+              </div>
+
+              <div class="bg-[#F7F4EB] border border-[#1E1E1E] p-3 text-xs leading-relaxed">
+                <span class="text-xs font-mono font-bold uppercase text-[#2A9D8F]">The Norwegian Sovereign Solution:</span>
+                <p class="mt-2 text-[#264653]">
+                  <strong>1. Capital Sterilization (Oljefondet):</strong> Petroleum taxes are not spent inside the domestic economy. They are invested <strong>abroad in foreign equities and bonds</strong>.
+                </p>
+                <p class="mt-2 text-[#264653]">
+                  <strong>2. The 3–4% Fiscal Spending Rule:</strong> The state budget may only draw the real expected investment returns of the fund, leaving the capital principal untouched forever.
+                </p>
+                <p class="mt-2 text-[#264653]">
+                  <strong>3. Counter-Cyclical Buffers:</strong> Preserves engineering and maritime diversification.
+                </p>
+              </div>
+            </div>
+
+            <div class="bg-[#E9C46A]/20 border border-[#1E1E1E] p-2.5 font-mono text-xs text-[#1E1E1E]">
+              💡 <strong>Game Lesson:</strong> As Norway, do not spend oil windfalls on domestic wage hikes or subsidies! Sterilize petrodollars into the Sovereign Wealth Fund and protect green marine tech.
+            </div>
+          </div>
+        `,
+        notes: `Contrast Norway with Venezuela or Nigeria. Many countries struck oil and became poorer or hyper-inflationary due to corruption and Dutch disease. Norway created the largest sovereign wealth fund on earth (\$1.6 trillion) by saving abroad.`
+      },
+
+      // -------------------------------------------------------------
+      // SLIDE 8: Case Study 3 — Greece 2009
+      // -------------------------------------------------------------
+      {
+        id: 'greece',
+        badge: 'Historical Archetype 03',
+        title: 'Case Study: Greece 2009 (Debt Crisis in a Currency Union)',
+        subtitle: 'The perils of structural deficits without independent monetary devaluation',
+        image: 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&w=1200&q=80',
+        imageCaption: 'Syntagma Square: Navigating severe fiscal consolidation without triggering a socio-economic collapse.',
+        contentHtml: `
+          <div class="space-y-4">
+            <div class="border-2 border-[#1E1E1E] bg-[#FFFFFF] p-4 shadow-brutal grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <span class="text-xs font-mono font-bold uppercase text-[#E04F3E]">The Structural Impasse:</span>
+                <ul class="list-disc list-inside text-xs text-[#264653] space-y-1.5 mt-2 leading-relaxed">
+                  <li><strong>Hidden Budget Deficit:</strong> True deficit disclosed at <strong>15.7% of GDP</strong> (5x EU limits).</li>
+                  <li><strong>The Eurozone Straightjacket:</strong> Because Greece used the Euro, it <strong>could not devalue its currency</strong> or print drachmas to stimulate exports.</li>
+                  <li><strong>The Austerity Spiral:</strong> Across-the-board spending cuts caused GDP to drop by 25%, making the Debt-to-GDP ratio skyrocket past 180%.</li>
+                </ul>
+              </div>
+
+              <div class="bg-[#F7F4EB] border border-[#1E1E1E] p-3 text-xs leading-relaxed">
+                <span class="text-xs font-mono font-bold uppercase text-[#2A9D8F]">The Real Exit Path:</span>
+                <p class="mt-2 text-[#264653]">
+                  <strong>1. Avoid the Laffer Trap:</strong> Hiking corporate taxes to 42% caused 60,000 Greek companies to register in Bulgaria. The solution was <strong>digitizing the tax agency (IAPR)</strong> and mandatory e-invoicing.
+                </p>
+                <p class="mt-2 text-[#264653]">
+                  <strong>2. Bank Recapitalization:</strong> Restoring liquidity to systemic lenders to prevent the credit transmission system from freezing.
+                </p>
+                <p class="mt-2 text-[#264653]">
+                  <strong>3. Youth Retention Vouchers:</strong> Halting devastating brain drain.
+                </p>
+              </div>
+            </div>
+
+            <div class="bg-[#E9C46A]/20 border border-[#1E1E1E] p-2.5 font-mono text-xs text-[#1E1E1E]">
+              💡 <strong>Game Lesson:</strong> As Greece, do not hike statutory corporate tax rates or monetize debt into a drachma panic. Focus on tax compliance digitization, youth tech vouchers, and structural labor flexibility!
+            </div>
+          </div>
+        `,
+        notes: `Emphasize the unique challenge: inside a monetary union like the Eurozone, you cannot devalue your way out of trouble. You have to carry out 'internal devaluation' through productivity and structural reforms.`
+      },
+
+      // -------------------------------------------------------------
+      // SLIDE 9: Case Study 4 — Germany 1948
+      // -------------------------------------------------------------
+      {
+        id: 'germany',
+        badge: 'Historical Archetype 04',
+        title: 'Case Study: Germany 1948 (The Social Market Economy)',
+        subtitle: 'Ludwig Erhard’s Ordoliberal revolution: Price deregulation and hard currency foundation',
+        image: 'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?auto=format&fit=crop&w=1200&q=80',
+        imageCaption: 'The introduction of the Deutsche Mark in June 1948 ended the barter cigarette economy overnight.',
+        contentHtml: `
+          <div class="space-y-4">
+            <div class="border-2 border-[#1E1E1E] bg-[#FFFFFF] p-4 shadow-brutal grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <span class="text-xs font-mono font-bold uppercase text-[#E04F3E]">Post-War Collapse:</span>
+                <p class="text-xs text-[#264653] mt-2 leading-relaxed">
+                  Post-WWII Germany suffered under strict Allied price controls and rationing. 
+                  Because official prices were capped below real costs, legal shops were completely empty. 
+                  Commerce occurred exclusively on the black market using American cigarettes and coffee as currency.
+                </p>
+              </div>
+
+              <div class="bg-[#F7F4EB] border border-[#1E1E1E] p-3 text-xs leading-relaxed">
+                <span class="text-xs font-mono font-bold uppercase text-[#2A9D8F]">The Erhard Miracle (Wirtschaftswunder):</span>
+                <p class="mt-2 text-[#264653]">
+                  <strong>1. Overnight Price Deregulation:</strong> On a Sunday in June 1948, Economics Director Ludwig Erhard abolished rationing and price caps against Allied orders, instantly restoring the price discovery mechanism.
+                </p>
+                <p class="mt-2 text-[#264653]">
+                  <strong>2. Introduction of the Deutsche Mark:</strong> Replaced the worthless Reichsmark at a 10:1 ratio, restoring absolute trust in cash savings.
+                </p>
+                <p class="mt-2 text-[#264653]">
+                  <strong>3. Dual-Track Apprenticeships:</strong> Marshall plan funds directed into industrial machine tooling.
+                </p>
+              </div>
+            </div>
+
+            <div class="bg-[#E9C46A]/20 border border-[#1E1E1E] p-2.5 font-mono text-xs text-[#1E1E1E]">
+              💡 <strong>Game Lesson:</strong> As Germany, maintain hard currency discipline, abolish administrative price ceilings, and invest heavily in capital goods reinvestment and the Mittelstand!
+            </div>
+          </div>
+        `,
+        notes: `Explain the psychological magic of June 21, 1948: On Saturday the shelves were bare. On Monday morning with the new Deutsche Mark and free prices, store windows were bursting with butter, meat, and shoes. Markets work when price signals are honest.`
+      },
+
+      // -------------------------------------------------------------
+      // SLIDE 10: Practical Simulation Workshop & Rules
+      // -------------------------------------------------------------
+      {
+        id: 'simulation',
+        badge: 'Classroom Battle Arena',
+        title: 'The "Fiscal Pulse" Simulation: Rules of Engagement',
+        subtitle: 'Applying theoretical principles in a live, deterministic macroeconomic sandbox',
+        image: 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?auto=format&fit=crop&w=1200&q=80',
+        imageCaption: 'Teams compete simultaneously across identical crisis rooms to prove macroeconomic stewardship.',
+        contentHtml: `
+          <div class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 font-mono text-xs">
+              <div class="border-2 border-[#1E1E1E] bg-[#FFFFFF] p-3 shadow-brutal-sm">
+                <span class="bg-[#1E1E1E] text-white px-2 py-0.5 text-[10px] font-bold uppercase">Step 1: Setup</span>
+                <strong class="text-[#1E1E1E] block mt-1.5 text-sm">Join Shared Room</strong>
+                <p class="text-[11px] text-[#264653] mt-1">
+                  Enter classroom Room Code (e.g. <code>482-910</code>). Set your team name and pick your historical country case.
+                </p>
+              </div>
+
+              <div class="border-2 border-[#1E1E1E] bg-[#FFFFFF] p-3 shadow-brutal-sm">
+                <span class="bg-[#E04F3E] text-white px-2 py-0.5 text-[10px] font-bold uppercase">Step 2: 5 Fiscal Years</span>
+                <strong class="text-[#1E1E1E] block mt-1.5 text-sm">Confront Crises</strong>
+                <p class="text-[11px] text-[#264653] mt-1">
+                  Adjust tax/spend sliders. Face 5 authentic historical shock events. Execute your policy choices.
+                </p>
+              </div>
+
+              <div class="border-2 border-[#1E1E1E] bg-[#2A9D8F] text-white p-3 shadow-brutal-sm">
+                <span class="bg-white text-[#1E1E1E] px-2 py-0.5 text-[10px] font-bold uppercase">Step 3: Evaluation</span>
+                <strong class="block mt-1.5 text-sm">Classroom Podium</strong>
+                <p class="text-[11px] text-white/90 mt-1">
+                  Fairly evaluated by <strong>Optimal Decisions (0–5)</strong> and <strong>Capital Growth %</strong>, not raw dollar sizes!
+                </p>
+              </div>
+            </div>
+
+            <div class="border border-[#1E1E1E] bg-[#F7F4EB] p-3 text-xs flex flex-col sm:flex-row justify-between items-center gap-3">
+              <div class="font-mono text-[#264653]">
+                🌐 <strong>Cloud Real-Time Sync:</strong> The leaderboard updates live across all student laptops via WebSocket!
+              </div>
+              <a href="./index.html" class="bg-[#1E1E1E] text-white font-mono font-bold text-xs uppercase px-5 py-2 shadow-brutal hover:bg-[#2A9D8F] transition text-center shrink-0">
+                🚀 Launch Simulation Game →
+              </a>
+            </div>
+          </div>
+        `,
+        notes: `Point out the URL to the students. Tell each team to pick a unique name (e.g., Team Alpha, Team Vanguard) and ensure everyone enters the exact same Room Code.`
+      },
+
+      // -------------------------------------------------------------
+      // SLIDE 11: Final Checklist & Action Mandate
+      // -------------------------------------------------------------
+      {
+        id: 'action',
+        badge: 'Executive Briefing',
+        title: 'Team Strategy Checklist: Before You Hit "Execute"',
+        subtitle: 'A four-step analytical checklist to ensure optimal policy execution',
+        image: 'https://images.unsplash.com/photo-1509099836639-18ba1795216d?auto=format&fit=crop&w=1200&q=80',
+        imageCaption: 'Macroeconomic leadership is about making disciplined, evidence-based choices under uncertainty.',
+        contentHtml: `
+          <div class="space-y-4">
+            <div class="border-2 border-[#1E1E1E] bg-[#FFFFFF] p-5 shadow-brutal">
+              <h4 class="font-mono font-bold text-sm uppercase text-[#1E1E1E] border-b border-[#1E1E1E] pb-2 mb-3">
+                Team Pre-Flight Checklist (Run Before Every Fiscal Year):
+              </h4>
+              <div class="space-y-2.5 font-mono text-xs">
+                <div class="flex items-start gap-2 bg-[#F7F4EB] p-2 border border-[#1E1E1E]">
+                  <span class="text-[#2A9D8F] font-bold text-base leading-none">✓</span>
+                  <div>
+                    <strong>1. Debt Servicing Check:</strong> Did you set Debt Servicing at or above the <em>Required Interest Due</em>? Never default!
+                  </div>
+                </div>
+
+                <div class="flex items-start gap-2 bg-[#F7F4EB] p-2 border border-[#1E1E1E]">
+                  <span class="text-[#2A9D8F] font-bold text-base leading-none">✓</span>
+                  <div>
+                    <strong>2. Laffer Boundary Check:</strong> Is Corporate Tax safely between 20% and 26%? Don't trigger capital flight!
+                  </div>
+                </div>
+
+                <div class="flex items-start gap-2 bg-[#F7F4EB] p-2 border border-[#1E1E1E]">
+                  <span class="text-[#2A9D8F] font-bold text-base leading-none">✓</span>
+                  <div>
+                    <strong>3. Multiplier Balance:</strong> Are you balancing infrastructure (instant Keynesian jobs) with R&D (long-run Solow growth)?
+                  </div>
+                </div>
+
+                <div class="flex items-start gap-2 bg-[#F7F4EB] p-2 border border-[#1E1E1E]">
+                  <span class="text-[#2A9D8F] font-bold text-base leading-none">✓</span>
+                  <div>
+                    <strong>4. Root Cause vs Handout:</strong> Does your crisis choice solve the structural disease, or is it just a temporary populist bandage?
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="text-center pt-2">
+              <a href="./index.html" class="inline-block bg-[#E04F3E] text-white font-mono font-extrabold text-sm uppercase px-10 py-3 shadow-brutal-lg hover:bg-[#1E1E1E] transition transform hover:-translate-y-0.5">
+                🏛️ Enter Simulation Room & Begin Practical Game →
+              </a>
+            </div>
+          </div>
+        `,
+        notes: `Wrap up the lecture. Wish all teams good luck. Remind them: the winner is the team with the most optimal policy decisions (out of 5) and highest capital growth, not the country with the biggest starting balance!`
+      }
+    ];
+
+    let currentSlideIdx = 0;
+    let showNotes = false;
+
+    function renderSlide(idx) {
+      if (idx < 0) idx = 0;
+      if (idx >= SLIDES.length) idx = SLIDES.length - 1;
+      currentSlideIdx = idx;
+
+      const slide = SLIDES[currentSlideIdx];
+
+      // Update Header & Indicator
+      document.getElementById('slideIndicator').innerText = `${String(idx + 1).padStart(2, '0')} / ${String(SLIDES.length).padStart(2, '0')}`;
+      document.getElementById('progressBar').style.width = `${((idx + 1) / SLIDES.length) * 100}%`;
+      document.getElementById('slideTitleMini').innerText = `${idx + 1}. ${slide.title}`;
+
+      // Update Nav Buttons
+      document.getElementById('prevBtn').disabled = (idx === 0);
+      document.getElementById('prevBtn').classList.toggle('opacity-40', idx === 0);
+      document.getElementById('nextBtn').innerText = (idx === SLIDES.length - 1) ? 'Play Game 🚀' : 'Next →';
+
+      // Update Speaker Notes Content
+      document.getElementById('speakerNotesContent').innerText = slide.notes;
+
+      // Render Stage HTML
+      const container = document.getElementById('slideContainer');
+      container.innerHTML = `
+        <div class="slide-enter w-full bg-[#FFFFFF] border-2 border-[#1E1E1E] shadow-brutal-lg p-5 md:p-8 space-y-6">
+          <!-- Slide Header Strip -->
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 border-b-2 border-[#1E1E1E] pb-4">
+            <div>
+              <span class="bg-[#1E1E1E] text-white px-2 py-0.5 text-xs font-mono font-bold uppercase tracking-wider">
+                ${slide.badge}
+              </span>
+              <h2 class="text-2xl md:text-3xl font-extrabold uppercase mt-2 text-[#1E1E1E] tracking-tight">
+                ${slide.title}
+              </h2>
+              <p class="text-xs md:text-sm text-[#264653] font-mono mt-0.5">
+                ${slide.subtitle}
+              </p>
+            </div>
+          </div>
+
+          <!-- Slide Body: Content Left, Visual Illustration Right -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+            <!-- Left: Rich Content -->
+            <div class="lg:col-span-7 space-y-4">
+              ${slide.contentHtml}
+            </div>
+
+            <!-- Right: Authentic Visual Illustration -->
+            <div class="lg:col-span-5">
+              <div class="border-2 border-[#1E1E1E] bg-[#F7F4EB] p-2 shadow-brutal">
+                <div class="overflow-hidden border border-[#1E1E1E] bg-slate-200 aspect-[4/3] relative">
+                  <img 
+                    src="${slide.image}" 
+                    alt="${slide.title}" 
+                    class="w-full h-full object-cover transition duration-500 hover:scale-105"
+                    loading="lazy"
+                  />
+                </div>
+                <div class="text-[10px] font-mono text-[#264653] mt-2 italic px-1 leading-normal">
+                  📸 ${slide.imageCaption}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function nextSlide() {
+      if (currentSlideIdx === SLIDES.length - 1) {
+        window.location.href = './index.html';
+      } else {
+        renderSlide(currentSlideIdx + 1);
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlideIdx > 0) {
+        renderSlide(currentSlideIdx - 1);
+      }
+    }
+
+    function toggleSpeakerNotes() {
+      showNotes = !showNotes;
+      const drawer = document.getElementById('speakerNotesDrawer');
+      drawer.classList.toggle('hidden', !showNotes);
+      document.getElementById('notesBtnLabel').innerText = showNotes ? 'Hide Notes (N)' : 'Speaker Notes (N)';
+    }
+
+    function toggleIndexModal() {
+      const modal = document.getElementById('indexModal');
+      const isHidden = modal.classList.contains('hidden');
+      if (isHidden) {
+        // Build Index Grid
+        const grid = document.getElementById('indexGrid');
+        grid.innerHTML = SLIDES.map((s, i) => `
+          <button onclick="jumpToSlide(${i})" class="text-left p-2.5 border border-[#1E1E1E] ${i === currentSlideIdx ? 'bg-[#E9C46A] font-bold' : 'bg-white hover:bg-[#FAF8F2]'}">
+            <div class="text-[10px] text-[#E04F3E] font-bold">SLIDE ${String(i + 1).padStart(2, '0')} • ${s.badge}</div>
+            <div class="text-xs truncate text-[#1E1E1E] font-semibold">${s.title}</div>
+          </button>
+        `).join('');
+        modal.classList.remove('hidden');
+      } else {
+        modal.classList.add('hidden');
+      }
+    }
+
+    function jumpToSlide(idx) {
+      renderSlide(idx);
+      toggleIndexModal();
+    }
+
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    }
+
+    // Keyboard Shortcuts
+    window.addEventListener('keydown', (e) => {
+      // Don't intercept if an input is focused
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        e.preventDefault();
+        nextSlide();
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp' || e.key === 'Backspace') {
+        e.preventDefault();
+        prevSlide();
+      } else if (e.key.toLowerCase() === 'n') {
+        e.preventDefault();
+        toggleSpeakerNotes();
+      } else if (e.key.toLowerCase() === 'g') {
+        e.preventDefault();
+        toggleIndexModal();
+      } else if (e.key.toLowerCase() === 'f') {
+        e.preventDefault();
+        toggleFullScreen();
+      } else if (e.key === 'Escape') {
+        document.getElementById('indexModal').classList.add('hidden');
+      }
+    });
+
+    // Touch Swipe Navigation for Tablets/Mobiles
+    let touchStartX = 0;
+    let touchEndX = 0;
+    document.addEventListener('touchstart', (e) => {
+      touchStartX = e.changedTouches[0].screenX;
+    }, false);
+    document.addEventListener('touchend', (e) => {
+      touchEndX = e.changedTouches[0].screenX;
+      if (touchEndX < touchStartX - 50) nextSlide();
+      if (touchEndX > touchStartX + 50) prevSlide();
+    }, false);
+
+    // Initial render
+    renderSlide(0);
+  </script>
+</body>
+</html>

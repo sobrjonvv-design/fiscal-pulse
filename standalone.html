@@ -799,10 +799,16 @@
           <div className="max-w-5xl mx-auto p-4 md:p-6 space-y-6">
             <div className="border border-[#1E1E1E] bg-[#FFFFFF] p-6 shadow-brutal flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               <div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <span className="bg-[#E04F3E] text-white px-2 py-0.5 text-xs font-mono font-bold uppercase tracking-widest">
                     Classroom Real-Time Multiplayer
                   </span>
+                  <a
+                    href="./presentation.html"
+                    className="border border-[#1E1E1E] bg-[#E9C46A] hover:bg-[#1E1E1E] hover:text-white px-2.5 py-0.5 text-xs font-mono font-bold transition flex items-center gap-1 shadow-sm"
+                  >
+                    <span>📊</span> <span>Open Lecture Presentation Deck ↗</span>
+                  </a>
                   <span className={`text-[10px] font-mono px-2 py-0.5 border font-bold flex items-center gap-1 ${
                     cloudConnected ? 'bg-emerald-50 text-emerald-800 border-emerald-600' : 'bg-amber-50 text-amber-800 border-amber-600'
                   }`}>
