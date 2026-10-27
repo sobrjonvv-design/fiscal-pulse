@@ -11,6 +11,7 @@
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -44,9 +45,11 @@
   <div id="root"></div>
 
   <script type="text/babel">
-    const { useState, useEffect, useMemo } = React;
+    const { useState, useEffect, useMemo, useRef } = React;
 
-    // --- DATA ---
+    // ========================================================================
+    // 1. DATA: 4 REAL-WORLD COUNTRY CASES WITH 5 FISCAL YEARS EACH
+    // ========================================================================
     const COUNTRY_CASES = [
       {
         id: 'singapore_1965',
@@ -286,7 +289,9 @@
       }
     ];
 
-    // Helper functions
+    // ========================================================================
+    // 2. ECONOMIC CALCULATION ENGINE
+    // ========================================================================
     function clamp(val, min, max) {
       return Math.min(max, Math.max(min, Number(val.toFixed(2))));
     }
@@ -365,9 +370,9 @@
       const fiscalStatus = structuralFiscalBalance >= 0 ? 'SURPLUS' : 'DEFICIT';
 
       if (fiscalStatus === 'SURPLUS') {
-        explanations.push(`Fiscal Surplus Achieved: Tax revenues ($${totalTaxRevenue}M) exceeded total outlays ($${totalExpenditure}M) by +$${structuralFiscalBalance}M.`);
+        explanations.push(`Fiscal Surplus: Tax receipts ($${totalTaxRevenue}M) exceeded outlays ($${totalExpenditure}M) by +$${structuralFiscalBalance}M.`);
       } else {
-        explanations.push(`Fiscal Deficit Incurred: Expenditures ($${totalExpenditure}M) exceeded tax revenues ($${totalTaxRevenue}M) by -$${Math.abs(structuralFiscalBalance)}M.`);
+        explanations.push(`Fiscal Deficit: Outlays ($${totalExpenditure}M) exceeded tax revenue ($${totalTaxRevenue}M) by -$${Math.abs(structuralFiscalBalance)}M.`);
       }
 
       const infraShare = alloc.infrastructure / current.gdp;
@@ -391,7 +396,7 @@
       if (current.round >= 2) {
         delayedEndogenousBonus = Number((current.humanCapitalStock * 0.18).toFixed(1));
         if (delayedEndogenousBonus >= 0.6) {
-          explanations.push(`Delayed Endogenous Growth Lag: Past R&D and Education investments yielded +${delayedEndogenousBonus.toFixed(1)}% productivity boost this year.`);
+          explanations.push(`Endogenous Growth Lag: Past R&D and Education investments unlocked +${delayedEndogenousBonus.toFixed(1)}% productivity growth.`);
         }
       }
 
@@ -407,7 +412,7 @@
       const nextUnemployment = clamp(current.unemployment - (nextGdpGrowth - 2.8) * 0.45 + (shockEffect.unemploymentDelta || 0), 1.2, 35.0);
       const nextApproval = clamp(current.approval + ((healthShare + eduShare) * 100 - 8.0) * 1.2 - (alloc.incomeTax - 22) * 0.22 + (shockEffect.approvalDelta || 0), 5, 98);
 
-      explanations.push(`Historical Crisis Choice [Option ${shockOption.id}]: ${shockOption.rationale}`);
+      explanations.push(`Historical Crisis Decision [${shockOption.id}]: ${shockOption.rationale}`);
 
       const nextState = {
         year: current.year + 1,
@@ -426,7 +431,9 @@
         humanCapitalStock: nextHumanCapitalStock,
       };
 
-      const score = Math.round(clamp(50 + (nextTreasury / current.initialTreasury) * 20 + (100 - nextDebtToGdp) * 0.2 + nextGdpGrowth * 2, 10, 100));
+      // 0 - 100 score
+      const capRatio = nextTreasury / current.initialTreasury;
+      const score = Math.round(clamp(40 + capRatio * 25 + (100 - nextDebtToGdp) * 0.2 + nextGdpGrowth * 2.5 - Math.abs(nextInflation - 2.5) * 2, 10, 100));
 
       return {
         nextState,
@@ -441,58 +448,171 @@
       };
     }
 
-    // --- MAIN REACT COMPONENT ---
+    // ========================================================================
+    // 3. MAIN REACT MULTIPLAYER COMPONENT
+    // ========================================================================
     function App() {
+      // My unique client ID
+      const [myId] = useState(() => 'team_' + Math.random().toString(36).substr(2, 6));
       const [viewMode, setViewMode] = useState('LOBBY');
       const [roomCode, setRoomCode] = useState('482-910');
-      const [playerName, setPlayerName] = useState('Student Alex');
+      const [teamName, setTeamName] = useState('Команда 1: Минфин');
       const [selectedCaseId, setSelectedCaseId] = useState('singapore_1965');
       const [selectedCase, setSelectedCase] = useState(COUNTRY_CASES[0]);
 
+      // Simulation State
       const [currentStats, setCurrentStats] = useState(COUNTRY_CASES[0].initialStats);
       const [history, setHistory] = useState([COUNTRY_CASES[0].initialStats]);
       const [allocations, setAllocations] = useState(COUNTRY_CASES[0].defaultAllocations);
       const [selectedShockId, setSelectedShockId] = useState('A');
       const [lastRoundExplanations, setLastRoundExplanations] = useState([]);
 
-      const [players, setPlayers] = useState([
-        { id: 'user', name: playerName, treasury: 500, debtToGdp: 15, score: 70, status: 'SURPLUS' },
-        { id: 'ai1', name: 'Jordan (Keynesian Hawk)', treasury: 480, debtToGdp: 22, score: 65, status: 'DEFICIT' },
-        { id: 'ai2', name: 'Elena (Ordoliberal Eagle)', treasury: 530, debtToGdp: 12, score: 74, status: 'SURPLUS' }
-      ]);
+      // Shared Cohort Teams Dictionary
+      const [teamsMap, setTeamsMap] = useState({});
 
       const currentShock = selectedCase.rounds[Math.min(currentStats.round - 1, selectedCase.rounds.length - 1)];
       const preview = useMemo(() => calculateBudgetPreview(currentStats, allocations), [currentStats, allocations]);
 
+      // BroadcastChannel Ref
+      const bcRef = useRef(null);
+
+      // --- MULTIPLAYER REAL-TIME SYNC ---
+      useEffect(() => {
+        const cleanRoom = (roomCode || '482-910').trim().toUpperCase();
+        const channelName = `fp_sync_channel_${cleanRoom}`;
+        const storageKey = `fp_teams_storage_${cleanRoom}`;
+
+        // Load existing teams from localStorage
+        try {
+          const saved = localStorage.getItem(storageKey);
+          if (saved) {
+            setTeamsMap(JSON.parse(saved));
+          }
+        } catch (e) {}
+
+        // Setup BroadcastChannel
+        try {
+          bcRef.current = new BroadcastChannel(channelName);
+          bcRef.current.onmessage = (event) => {
+            if (!event.data) return;
+            handleIncomingSync(event.data);
+          };
+        } catch (e) {
+          console.warn('BroadcastChannel not supported', e);
+        }
+
+        // Setup Storage Event Listener (for cross-window sync)
+        const handleStorage = (e) => {
+          if (e.key === storageKey && e.newValue) {
+            try {
+              setTeamsMap(JSON.parse(e.newValue));
+            } catch (err) {}
+          }
+        };
+        window.addEventListener('storage', handleStorage);
+
+        return () => {
+          if (bcRef.current) bcRef.current.close();
+          window.removeEventListener('storage', handleStorage);
+        };
+      }, [roomCode]);
+
+      // Broadcast helper
+      const broadcastTeamState = (updatedTeam) => {
+        const cleanRoom = (roomCode || '482-910').trim().toUpperCase();
+        const storageKey = `fp_teams_storage_${cleanRoom}`;
+
+        setTeamsMap((prev) => {
+          const next = { ...prev, [updatedTeam.id]: updatedTeam };
+          try {
+            localStorage.setItem(storageKey, JSON.stringify(next));
+          } catch (e) {}
+          return next;
+        });
+
+        if (bcRef.current) {
+          try {
+            bcRef.current.postMessage({ type: 'TEAM_UPDATE', team: updatedTeam });
+          } catch (e) {}
+        }
+      };
+
+      const handleIncomingSync = (msg) => {
+        if (msg.type === 'TEAM_UPDATE' && msg.team) {
+          setTeamsMap((prev) => {
+            const next = { ...prev, [msg.team.id]: msg.team };
+            const cleanRoom = (roomCode || '482-910').trim().toUpperCase();
+            try {
+              localStorage.setItem(`fp_teams_storage_${cleanRoom}`, JSON.stringify(next));
+            } catch (e) {}
+            return next;
+          });
+        }
+      };
+
+      // Announce Presence on Name or Room Change
+      useEffect(() => {
+        const myTeam = {
+          id: myId,
+          name: teamName || 'Анонимная команда',
+          roomCode: (roomCode || '482-910').trim().toUpperCase(),
+          round: currentStats.round,
+          treasury: currentStats.treasury,
+          gdp: currentStats.gdp,
+          debtToGdp: currentStats.debtToGdp,
+          score: 70,
+          status: currentStats.budgetBalance >= 0 ? 'SURPLUS' : 'DEFICIT',
+          lastActive: Date.now()
+        };
+        broadcastTeamState(myTeam);
+      }, [teamName, roomCode]);
+
+      // Start Simulation
       const startGame = (cCase) => {
         setSelectedCase(cCase);
         setCurrentStats(cCase.initialStats);
         setHistory([cCase.initialStats]);
         setAllocations(cCase.defaultAllocations);
         setSelectedShockId('A');
-        setPlayers([
-          { id: 'user', name: playerName || 'Student Alex', treasury: cCase.initialStats.treasury, debtToGdp: cCase.initialStats.debtToGdp, score: 70, status: 'SURPLUS' },
-          { id: 'ai1', name: 'Jordan (Keynesian Hawk)', treasury: cCase.initialStats.treasury, debtToGdp: cCase.initialStats.debtToGdp + 4, score: 65, status: 'DEFICIT' },
-          { id: 'ai2', name: 'Elena (Ordoliberal Eagle)', treasury: cCase.initialStats.treasury, debtToGdp: cCase.initialStats.debtToGdp - 2, score: 74, status: 'SURPLUS' }
-        ]);
+
+        const updatedMe = {
+          id: myId,
+          name: teamName || 'Анонимная команда',
+          roomCode: (roomCode || '482-910').trim().toUpperCase(),
+          round: 1,
+          treasury: cCase.initialStats.treasury,
+          gdp: cCase.initialStats.gdp,
+          debtToGdp: cCase.initialStats.debtToGdp,
+          score: 70,
+          status: cCase.initialStats.budgetBalance >= 0 ? 'SURPLUS' : 'DEFICIT',
+          lastActive: Date.now()
+        };
+        broadcastTeamState(updatedMe);
         setViewMode('DASHBOARD');
       };
 
+      // Execute Fiscal Year
       const handleConfirmShock = () => {
         const option = currentShock.options.find(o => o.id === selectedShockId) || currentShock.options[0];
         const res = simulateFiscalRound(currentStats, allocations, option);
+
         setCurrentStats(res.nextState);
         setHistory(prev => [...prev, res.nextState]);
         setLastRoundExplanations(res.explanations);
 
-        setPlayers(prev => prev.map(p => {
-          if (p.id === 'user') {
-            return { ...p, treasury: res.nextState.treasury, debtToGdp: res.nextState.debtToGdp, score: res.score, status: res.fiscalStatus };
-          }
-          const delta = p.id === 'ai2' ? 30 : -25;
-          return { ...p, treasury: p.treasury + delta, debtToGdp: p.debtToGdp + (delta > 0 ? -1 : 2), score: p.score + (delta > 0 ? 3 : -2), status: delta > 0 ? 'SURPLUS' : 'DEFICIT' };
-        }));
-
+        const updatedMe = {
+          id: myId,
+          name: teamName || 'Анонимная команда',
+          roomCode: (roomCode || '482-910').trim().toUpperCase(),
+          round: res.nextState.round,
+          treasury: res.nextState.treasury,
+          gdp: res.nextState.gdp,
+          debtToGdp: res.nextState.debtToGdp,
+          score: res.score,
+          status: res.fiscalStatus,
+          lastActive: Date.now()
+        };
+        broadcastTeamState(updatedMe);
         setViewMode('ROUND_FEEDBACK');
       };
 
@@ -505,238 +625,454 @@
         }
       };
 
-      // RENDER LOBBY
+      // Sorted Leaderboard List
+      const sortedTeams = useMemo(() => {
+        const list = Object.values(teamsMap);
+        if (list.length === 0) {
+          return [{
+            id: myId,
+            name: teamName,
+            round: currentStats.round,
+            treasury: currentStats.treasury,
+            debtToGdp: currentStats.debtToGdp,
+            score: 70,
+            status: 'SURPLUS'
+          }];
+        }
+        return list.sort((a, b) => (b.score || 0) - (a.score || 0) || (b.treasury || 0) - (a.treasury || 0));
+      }, [teamsMap, myId, teamName, currentStats]);
+
+      // ======================================================================
+      // RENDER: LOBBY VIEW
+      // ======================================================================
       if (viewMode === 'LOBBY') {
         return (
-          <div className="max-w-5xl mx-auto p-6 space-y-6">
-            <div className="border border-[#1E1E1E] bg-[#FFFFFF] p-6 shadow-brutal flex justify-between items-center">
+          <div className="max-w-5xl mx-auto p-4 md:p-6 space-y-6">
+            <div className="border border-[#1E1E1E] bg-[#FFFFFF] p-6 shadow-brutal flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               <div>
-                <span className="bg-[#E04F3E] text-white px-2 py-0.5 text-xs font-mono font-bold uppercase">EdTech Simulation</span>
-                <h1 className="text-3xl font-extrabold uppercase mt-2">Fiscal Pulse: <span className="text-[#2A9D8F]">National Budget Simulator</span></h1>
-                <p className="text-xs text-[#264653] font-mono mt-1">Multiplayer Macroeconomic Public Finance Game across 5 Fiscal Years</p>
+                <span className="bg-[#E04F3E] text-white px-2 py-0.5 text-xs font-mono font-bold uppercase tracking-widest">
+                  Classroom Real-Time Multiplayer
+                </span>
+                <h1 className="text-2xl md:text-3xl font-extrabold uppercase mt-2">
+                  Fiscal Pulse: <span className="text-[#2A9D8F]">National Budget Simulator</span>
+                </h1>
+                <p className="text-xs text-[#264653] font-mono mt-1">
+                  Подключитесь к одной комнате с другими командами и соревнуйтесь в реальном времени!
+                </p>
               </div>
-              <div className="border border-[#1E1E1E] bg-[#F7F4EB] p-3 text-right">
-                <div className="text-[10px] font-mono uppercase text-[#264653]">Room Code</div>
-                <div className="text-xl font-mono font-bold tracking-widest">{roomCode}</div>
+
+              {/* Room Code Card */}
+              <div className="border border-[#1E1E1E] bg-[#F7F4EB] p-3 text-right shrink-0 w-full md:w-auto">
+                <div className="text-[10px] font-mono uppercase text-[#264653] font-bold">Код комнаты (Room Code)</div>
+                <input
+                  type="text"
+                  value={roomCode}
+                  onChange={(e) => setRoomCode(e.target.value)}
+                  className="bg-white border border-[#1E1E1E] px-3 py-1 font-mono text-xl font-bold tracking-widest text-center mt-1 w-36"
+                  placeholder="482-910"
+                />
               </div>
             </div>
 
+            {/* Country Cards Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {COUNTRY_CASES.map(c => (
-                <div key={c.id} onClick={() => setSelectedCaseId(c.id)} className={`cursor-pointer border border-[#1E1E1E] p-4 bg-[#FFFFFF] ${selectedCaseId === c.id ? 'shadow-brutal ring-2 ring-[#1E1E1E]' : ''}`}>
-                  <div className="flex justify-between">
-                    <span className="text-xs font-mono font-bold text-[#E04F3E]">CASE {c.codeNumber}</span>
-                    <span className="text-xs font-mono">{c.era}</span>
+                <div
+                  key={c.id}
+                  onClick={() => setSelectedCaseId(c.id)}
+                  className={`cursor-pointer border border-[#1E1E1E] p-4 bg-[#FFFFFF] transition ${
+                    selectedCaseId === c.id ? 'shadow-brutal ring-2 ring-[#1E1E1E]' : 'hover:bg-[#FAF8F2]'
+                  }`}
+                >
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-mono font-bold text-[#E04F3E]">CASE {c.codeNumber} • {c.era}</span>
+                    <span className="text-xs font-mono border border-[#1E1E1E] px-1.5 py-0.5 bg-[#F7F4EB] font-bold">{c.currencySymbol}</span>
                   </div>
-                  <h3 className="text-lg font-bold uppercase mt-1">{c.name}: {c.subtitle}</h3>
+                  <h3 className="text-lg font-bold uppercase mt-1 text-[#1E1E1E]">{c.name}: {c.subtitle}</h3>
                   <p className="text-xs text-[#264653] mt-2 leading-relaxed">{c.briefing}</p>
                   <div className="mt-4 pt-3 border-t border-[#1E1E1E] flex justify-between font-mono text-xs">
-                    <span>Starting Cap: <strong>${c.initialStats.treasury}M</strong></span>
-                    <span>GDP: <strong>${c.initialStats.gdp}M</strong></span>
-                    <span>Debt: <strong>{c.initialStats.debtToGdp}%</strong></span>
+                    <span>Казна: <strong className="text-[#2A9D8F]">${c.initialStats.treasury}M</strong></span>
+                    <span>ВВП: <strong>${c.initialStats.gdp}M</strong></span>
+                    <span>Долг: <strong className="text-[#E04F3E]">{c.initialStats.debtToGdp}%</strong></span>
                   </div>
                 </div>
               ))}
             </div>
 
-            <div className="border border-[#1E1E1E] bg-[#FFFFFF] p-4 flex justify-between items-center shadow-brutal">
-              <input type="text" value={playerName} onChange={e => setPlayerName(e.target.value)} placeholder="Enter Name" className="border border-[#1E1E1E] px-3 py-2 text-xs font-mono w-64" />
-              <button onClick={() => startGame(COUNTRY_CASES.find(c => c.id === selectedCaseId) || COUNTRY_CASES[0])} className="bg-[#1E1E1E] text-white font-mono font-bold text-xs uppercase px-6 py-2.5 shadow-brutal hover:bg-[#264653]">
-                Start Fiscal Simulation →
+            {/* Live Joined Teams Roster */}
+            <div className="border border-[#1E1E1E] bg-[#FFFFFF] p-5 shadow-brutal space-y-3">
+              <div className="flex justify-between items-center border-b border-[#1E1E1E] pb-2">
+                <span className="font-mono font-bold text-xs uppercase text-[#1E1E1E]">
+                  🟢 Команды в комнате [{roomCode}]: ({sortedTeams.length})
+                </span>
+                <span className="text-[11px] font-mono text-[#264653]">Синхронизация активна</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 font-mono text-xs">
+                {sortedTeams.map((t, idx) => (
+                  <div key={t.id} className={`p-2 border border-[#1E1E1E] flex justify-between items-center ${t.id === myId ? 'bg-[#E9C46A]/20 ring-1 ring-[#1E1E1E]' : 'bg-[#F7F4EB]'}`}>
+                    <span>#{idx + 1} <strong>{t.name}</strong> {t.id === myId && '(Вы)'}</span>
+                    <span className="text-[10px] bg-[#1E1E1E] text-white px-1">Готов</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Team Name Input & Start Button */}
+            <div className="border border-[#1E1E1E] bg-[#FFFFFF] p-4 flex flex-col sm:flex-row justify-between items-center gap-3 shadow-brutal">
+              <div className="w-full sm:w-auto flex items-center gap-2">
+                <span className="font-mono text-xs font-bold text-[#1E1E1E]">Ваша команда:</span>
+                <input
+                  type="text"
+                  value={teamName}
+                  onChange={e => setTeamName(e.target.value)}
+                  placeholder="Введите название команды"
+                  className="border border-[#1E1E1E] px-3 py-1.5 text-xs font-mono w-64 font-bold focus:outline-none"
+                />
+              </div>
+              <button
+                onClick={() => startGame(COUNTRY_CASES.find(c => c.id === selectedCaseId) || COUNTRY_CASES[0])}
+                className="w-full sm:w-auto bg-[#1E1E1E] text-white font-mono font-bold text-xs uppercase px-8 py-2.5 shadow-brutal hover:bg-[#264653] transition"
+              >
+                Начать финансовую симуляцию →
               </button>
             </div>
           </div>
         );
       }
 
-      // RENDER DEBRIEF
+      // ======================================================================
+      // RENDER: FINAL DEBRIEF & CLASSROOM PODIUM
+      // ======================================================================
       if (viewMode === 'FINAL_DEBRIEF') {
         const hist = selectedCase.historicalOutcome;
         return (
-          <div className="max-w-5xl mx-auto p-6 space-y-6">
-            <div className="border border-[#1E1E1E] bg-[#FFFFFF] p-6 shadow-brutal flex justify-between items-center">
+          <div className="max-w-5xl mx-auto p-4 md:p-6 space-y-6">
+            <div className="border border-[#1E1E1E] bg-[#FFFFFF] p-6 shadow-brutal flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               <div>
-                <span className="bg-[#E04F3E] text-white px-2 py-0.5 text-xs font-mono font-bold uppercase">Simulation Concluded</span>
-                <h1 className="text-2xl font-extrabold uppercase mt-1">{selectedCase.name} ({selectedCase.era}) — Final Debrief</h1>
-                <p className="text-xs text-[#264653] font-mono mt-1">{hist.summary}</p>
+                <span className="bg-[#E04F3E] text-white px-2 py-0.5 text-xs font-mono font-bold uppercase">5 раундов завершены</span>
+                <h1 className="text-2xl font-extrabold uppercase mt-1 text-[#1E1E1E]">
+                  {selectedCase.name} ({selectedCase.era}) — Итоговый рейтинг команд
+                </h1>
+                <p className="text-xs text-[#264653] font-mono mt-1 max-w-xl">{hist.summary}</p>
               </div>
-              <div className="border border-[#1E1E1E] bg-[#F7F4EB] p-4 text-center">
-                <div className="text-[10px] font-mono uppercase">Final Capital</div>
-                <div className="text-3xl font-mono font-bold text-[#2A9D8F]">${currentStats.treasury}M</div>
+              <div className="border border-[#1E1E1E] bg-[#F7F4EB] p-4 text-center shrink-0 w-full md:w-48">
+                <div className="text-[10px] font-mono uppercase text-[#264653]">Ваш капитал</div>
+                <div className="text-3xl font-mono font-extrabold text-[#2A9D8F]">${currentStats.treasury}M</div>
+                <div className="text-xs font-mono text-[#1E1E1E] font-bold mt-0.5">ВВП: ${currentStats.gdp}M</div>
               </div>
             </div>
 
+            {/* CLASSROOM COHORT PODIUM */}
             <div className="border border-[#1E1E1E] bg-[#FFFFFF] p-5 shadow-brutal">
-              <h3 className="font-mono font-bold text-xs uppercase mb-3">Leaderboard & Cohort Standings</h3>
+              <div className="flex justify-between items-center border-b border-[#1E1E1E] pb-3 mb-4">
+                <h3 className="font-mono font-bold text-sm uppercase text-[#1E1E1E]">
+                  🏆 Итоговая таблица лидеров группы (Комната {roomCode})
+                </h3>
+                <span className="text-xs font-mono text-[#264653]">Ранжирование по очкам и капиталу</span>
+              </div>
+
               <div className="space-y-2 font-mono text-xs">
-                {players.sort((a,b) => b.score - a.score).map((p, idx) => (
-                  <div key={p.id} className="border border-[#1E1E1E] p-2 flex justify-between bg-[#F7F4EB]">
-                    <span>#{idx + 1} <strong>{p.name}</strong></span>
-                    <span>Cap: ${p.treasury}M • Debt: {p.debtToGdp}%</span>
-                    <span className={p.status === 'SURPLUS' ? 'text-[#2A9D8F] font-bold' : 'text-[#E04F3E] font-bold'}>{p.status}</span>
+                {sortedTeams.map((team, idx) => (
+                  <div
+                    key={team.id}
+                    className={`border border-[#1E1E1E] p-3 flex justify-between items-center ${
+                      team.id === myId ? 'bg-[#E9C46A]/25 ring-2 ring-[#1E1E1E]' : 'bg-[#F7F4EB]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="w-6 h-6 bg-[#1E1E1E] text-white flex items-center justify-center font-bold text-xs">
+                        #{idx + 1}
+                      </span>
+                      <div>
+                        <div className="font-bold text-sm text-[#1E1E1E]">
+                          {team.name} {team.id === myId && '(Ваша команда)'}
+                        </div>
+                        <div className="text-[10px] text-[#264653]">
+                          Долг/ВВП: {team.debtToGdp}% • Финал: Раунд {team.round || 5}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="text-right">
+                      <div className="text-base font-extrabold text-[#1E1E1E]">
+                        Капитал: ${team.treasury}M
+                      </div>
+                      <div className="flex items-center justify-end gap-2 mt-0.5">
+                        <span className="text-[11px] font-bold text-[#264653]">{team.score || 75} баллов</span>
+                        <span className={`text-[9px] font-bold px-1.5 py-0.5 uppercase text-white ${
+                          team.status === 'SURPLUS' ? 'bg-[#2A9D8F]' : 'bg-[#E04F3E]'
+                        }`}>
+                          {team.status || 'SURPLUS'}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
             </div>
 
-            <button onClick={() => setViewMode('LOBBY')} className="bg-[#1E1E1E] text-white font-mono font-bold text-xs uppercase px-6 py-2.5 shadow-brutal">
-              ← Return to Classroom Lobby
+            <button
+              onClick={() => setViewMode('LOBBY')}
+              className="bg-[#1E1E1E] text-white font-mono font-bold text-xs uppercase px-6 py-2.5 shadow-brutal hover:bg-[#264653] transition"
+            >
+              ← Вернуться в лобби и выбрать новую страну
             </button>
           </div>
         );
       }
 
-      // RENDER DASHBOARD (BENTO GRID)
+      // ======================================================================
+      // RENDER: DASHBOARD VIEW (BENTO GRID)
+      // ======================================================================
       return (
-        <div className="max-w-7xl mx-auto p-4 space-y-4">
-          <div className="border border-[#1E1E1E] bg-[#FFFFFF] p-3 shadow-brutal flex justify-between items-center">
-            <span className="font-mono font-bold text-xs">{selectedCase.name}: {selectedCase.subtitle}</span>
-            <span className="bg-[#F7F4EB] border border-[#1E1E1E] px-3 py-1 font-mono text-xs font-bold">
-              FISCAL YEAR {currentStats.round} OF 5 ({currentShock.fiscalYearLabel})
+        <div className="max-w-7xl mx-auto p-3 md:p-4 space-y-4">
+          {/* Header Strip */}
+          <div className="border border-[#1E1E1E] bg-[#FFFFFF] p-3 shadow-brutal flex flex-wrap justify-between items-center gap-3">
+            <div className="flex items-center gap-3">
+              <span className="bg-[#E04F3E] text-white px-2 py-0.5 font-mono font-bold text-xs">CASE {selectedCase.codeNumber}</span>
+              <span className="font-mono font-bold text-xs text-[#1E1E1E]">{selectedCase.name}: {selectedCase.subtitle}</span>
+              <span className="text-xs font-mono text-[#264653] hidden sm:inline">| Команда: <strong>{teamName}</strong> (Комната {roomCode})</span>
+            </div>
+            <span className="bg-[#F7F4EB] border border-[#1E1E1E] px-3 py-1 font-mono text-xs font-bold text-[#1E1E1E]">
+              ФИНАНСОВЫЙ ГОД {currentStats.round} ИЗ 5 ({currentShock.fiscalYearLabel})
             </span>
           </div>
 
+          {/* 3-Column Bento Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-            {/* LEFT: REVENUES */}
-            <div className="lg:col-span-3 border border-[#1E1E1E] bg-[#FFFFFF] shadow-brutal">
-              <div className="bg-[#E04F3E] text-white p-2 font-mono text-xs font-bold uppercase tracking-wider">
-                01. REVENUES & BORROWING
+            {/* 1. REVENUES (3 cols) */}
+            <div className="lg:col-span-3 border border-[#1E1E1E] bg-[#FFFFFF] shadow-brutal flex flex-col justify-between">
+              <div>
+                <div className="bg-[#E04F3E] text-white p-2 font-mono text-xs font-bold uppercase tracking-wider">
+                  01. ДОХОДЫ И ЗАЙМЫ ($M)
+                </div>
+                <div className="p-4 space-y-4 font-mono text-xs">
+                  <div>
+                    <div className="flex justify-between font-bold"><span>Налог на прибыль (Corp)</span><span>{allocations.corporateTax}%</span></div>
+                    <input type="range" min="10" max="45" value={allocations.corporateTax} onChange={e => setAllocations({...allocations, corporateTax: Number(e.target.value)})} className="w-full accent-[#1E1E1E] cursor-pointer" />
+                    <div className="text-[10px] text-[#264653]">Оптимум 20–25%. Свыше 28% — бегство капитала.</div>
+                  </div>
+                  <div>
+                    <div className="flex justify-between font-bold"><span>Подоходный налог (Income)</span><span>{allocations.incomeTax}%</span></div>
+                    <input type="range" min="10" max="50" value={allocations.incomeTax} onChange={e => setAllocations({...allocations, incomeTax: Number(e.target.value)})} className="w-full accent-[#1E1E1E] cursor-pointer" />
+                    <div className="text-[10px] text-[#264653]">Основная масса налогов. Снижает потребление.</div>
+                  </div>
+                  <div>
+                    <div className="flex justify-between font-bold"><span>НДС (VAT / Sales)</span><span>{allocations.vat}%</span></div>
+                    <input type="range" min="5" max="25" value={allocations.vat} onChange={e => setAllocations({...allocations, vat: Number(e.target.value)})} className="w-full accent-[#1E1E1E] cursor-pointer" />
+                    <div className="text-[10px] text-[#264653]">Свыше 16% — прямой рост инфляции цен.</div>
+                  </div>
+                  <div>
+                    <div className="flex justify-between font-bold"><span>Суверенные займы (Bonds)</span><span className="text-[#E04F3E]">${allocations.sovereignBorrowing}M</span></div>
+                    <input type="range" min="0" max="1000" step="10" value={allocations.sovereignBorrowing} onChange={e => setAllocations({...allocations, sovereignBorrowing: Number(e.target.value)})} className="w-full accent-[#E04F3E] cursor-pointer" />
+                    <div className="text-[10px] text-[#264653]">Дают живые деньги, но растет госдолг.</div>
+                  </div>
+                </div>
               </div>
-              <div className="p-4 space-y-4 font-mono text-xs">
-                <div>
-                  <div className="flex justify-between font-bold"><span>Corporate Tax</span><span>{allocations.corporateTax}%</span></div>
-                  <input type="range" min="10" max="45" value={allocations.corporateTax} onChange={e => setAllocations({...allocations, corporateTax: Number(e.target.value)})} className="w-full accent-[#1E1E1E]" />
-                </div>
-                <div>
-                  <div className="flex justify-between font-bold"><span>Income Tax</span><span>{allocations.incomeTax}%</span></div>
-                  <input type="range" min="10" max="50" value={allocations.incomeTax} onChange={e => setAllocations({...allocations, incomeTax: Number(e.target.value)})} className="w-full accent-[#1E1E1E]" />
-                </div>
-                <div>
-                  <div className="flex justify-between font-bold"><span>VAT / Sales Tax</span><span>{allocations.vat}%</span></div>
-                  <input type="range" min="5" max="25" value={allocations.vat} onChange={e => setAllocations({...allocations, vat: Number(e.target.value)})} className="w-full accent-[#1E1E1E]" />
-                </div>
-                <div>
-                  <div className="flex justify-between font-bold"><span>Sovereign Borrowing</span><span className="text-[#E04F3E]">${allocations.sovereignBorrowing}M</span></div>
-                  <input type="range" min="0" max="1000" step="10" value={allocations.sovereignBorrowing} onChange={e => setAllocations({...allocations, sovereignBorrowing: Number(e.target.value)})} className="w-full accent-[#E04F3E]" />
-                </div>
-                <div className="pt-2 border-t border-[#1E1E1E] text-[#264653]">
-                  <div>Total Tax Receipts: <strong>${preview.totalTaxRevenue}M</strong></div>
-                  <div>Total Inflows: <strong>${preview.totalInflows}M</strong></div>
-                </div>
+
+              <div className="p-3 bg-[#F7F4EB] border-t border-[#1E1E1E] font-mono text-xs space-y-1">
+                <div className="flex justify-between text-[#264653]"><span>Сбор налогов:</span><span className="font-bold text-[#1E1E1E]">${preview.totalTaxRevenue}M</span></div>
+                <div className="flex justify-between text-[#264653]"><span>Всего поступлений:</span><span className="font-bold text-[#2A9D8F]">${preview.totalInflows}M</span></div>
               </div>
             </div>
 
-            {/* CENTER: SCORECARD & METRICS */}
+            {/* 2. OVERVIEW & METRICS (6 cols) */}
             <div className="lg:col-span-6 space-y-4">
               <div className="border border-[#1E1E1E] bg-[#FFFFFF] p-5 shadow-brutal">
-                <div className="text-[10px] font-mono uppercase text-[#264653] font-bold">Current National Treasury Capital</div>
+                <div className="text-[10px] font-mono uppercase text-[#264653] font-bold tracking-widest">
+                  Текущий капитал суверенного казначейства
+                </div>
                 <div className="flex items-baseline justify-between mt-1">
-                  <div className="text-4xl font-mono font-extrabold">${currentStats.treasury}M</div>
-                  <span className={`px-2 py-0.5 text-xs font-mono font-bold uppercase text-white ${preview.fiscalStatus === 'SURPLUS' ? 'bg-[#2A9D8F]' : 'bg-[#E04F3E]'}`}>
+                  <div className="text-4xl md:text-5xl font-mono font-extrabold text-[#1E1E1E]">
+                    ${currentStats.treasury}M
+                  </div>
+                  <span className={`px-3 py-1 text-xs font-mono font-bold uppercase text-white border border-[#1E1E1E] ${
+                    preview.fiscalStatus === 'SURPLUS' ? 'bg-[#2A9D8F]' : 'bg-[#E04F3E]'
+                  }`}>
                     {preview.fiscalStatus} (${Math.abs(preview.fiscalBalance)}M)
                   </span>
                 </div>
 
                 <div className="grid grid-cols-4 gap-2 mt-4 text-center font-mono text-xs border-t border-[#1E1E1E] pt-3">
                   <div className="border border-[#1E1E1E] bg-[#F7F4EB] p-2">
-                    <div className="text-[9px] uppercase">GDP Level</div>
-                    <div className="font-bold text-sm">${currentStats.gdp}M</div>
+                    <div className="text-[9px] uppercase text-[#264653]">ВВП (GDP)</div>
+                    <div className="font-bold text-sm text-[#1E1E1E] mt-0.5">${currentStats.gdp}M</div>
                   </div>
                   <div className="border border-[#1E1E1E] bg-[#F7F4EB] p-2">
-                    <div className="text-[9px] uppercase">Growth</div>
-                    <div className="font-bold text-sm text-[#2A9D8F]">{currentStats.gdpGrowth}%</div>
+                    <div className="text-[9px] uppercase text-[#264653]">Рост ВВП</div>
+                    <div className={`font-bold text-sm mt-0.5 ${currentStats.gdpGrowth >= 0 ? 'text-[#2A9D8F]' : 'text-[#E04F3E]'}`}>
+                      {currentStats.gdpGrowth > 0 ? '+' : ''}{currentStats.gdpGrowth}%
+                    </div>
                   </div>
                   <div className="border border-[#1E1E1E] bg-[#F7F4EB] p-2">
-                    <div className="text-[9px] uppercase">Debt/GDP</div>
-                    <div className="font-bold text-sm">{currentStats.debtToGdp}%</div>
+                    <div className="text-[9px] uppercase text-[#264653]">Долг / ВВП</div>
+                    <div className="font-bold text-sm text-[#1E1E1E] mt-0.5">{currentStats.debtToGdp}%</div>
                   </div>
                   <div className="border border-[#1E1E1E] bg-[#F7F4EB] p-2">
-                    <div className="text-[9px] uppercase">CPI Inflation</div>
-                    <div className="font-bold text-sm">{currentStats.inflation}%</div>
+                    <div className="text-[9px] uppercase text-[#264653]">Инфляция CPI</div>
+                    <div className={`font-bold text-sm mt-0.5 ${currentStats.inflation > 6 ? 'text-[#E04F3E]' : 'text-[#1E1E1E]'}`}>
+                      {currentStats.inflation}%
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <div className="border border-[#1E1E1E] bg-[#FFFFFF] p-4 shadow-brutal flex justify-between items-center">
-                <span className="font-mono text-xs text-[#264653]">Historical Crisis: <strong>{currentShock.title}</strong></span>
-                <button onClick={() => setViewMode('SHOCK_MODAL')} className="bg-[#1E1E1E] text-white font-mono font-bold text-xs uppercase px-5 py-2 shadow-brutal hover:bg-[#264653]">
-                  Resolve Crisis Decision →
+              {/* Action Button: Confront Crisis */}
+              <div className="border border-[#1E1E1E] bg-[#FFFFFF] p-4 shadow-brutal flex flex-col sm:flex-row justify-between items-center gap-3">
+                <span className="font-mono text-xs text-[#264653]">
+                  Исторический кризис года: <strong className="text-[#1E1E1E]">«{currentShock.title}»</strong>
+                </span>
+                <button
+                  onClick={() => setViewMode('SHOCK_MODAL')}
+                  className="w-full sm:w-auto bg-[#1E1E1E] text-white font-mono font-bold text-xs uppercase px-6 py-2.5 shadow-brutal hover:bg-[#264653] transition"
+                >
+                  Разрешить кризис раунда →
                 </button>
               </div>
             </div>
 
-            {/* RIGHT: EXPENDITURES */}
-            <div className="lg:col-span-3 border border-[#1E1E1E] bg-[#FFFFFF] shadow-brutal">
-              <div className="bg-[#E04F3E] text-white p-2 font-mono text-xs font-bold uppercase tracking-wider">
-                02. EXPENDITURES ($M)
+            {/* 3. EXPENDITURES (3 cols) */}
+            <div className="lg:col-span-3 border border-[#1E1E1E] bg-[#FFFFFF] shadow-brutal flex flex-col justify-between">
+              <div>
+                <div className="bg-[#E04F3E] text-white p-2 font-mono text-xs font-bold uppercase tracking-wider">
+                  02. РАСХОДЫ БЮДЖЕТА ($M)
+                </div>
+                <div className="p-4 space-y-4 font-mono text-xs">
+                  <div>
+                    <div className="flex justify-between font-bold"><span>Инфраструктура</span><span>${allocations.infrastructure}M</span></div>
+                    <input type="range" min="0" max={currentStats.gdp * 0.25} value={allocations.infrastructure} onChange={e => setAllocations({...allocations, infrastructure: Number(e.target.value)})} className="w-full accent-[#1E1E1E] cursor-pointer" />
+                    <div className="text-[10px] text-[#264653]">Быстрый мультипликатор ВВП (1.45x).</div>
+                  </div>
+                  <div>
+                    <div className="flex justify-between font-bold"><span>Образование и R&D</span><span className="text-[#2A9D8F] font-bold">${allocations.educationRd}M</span></div>
+                    <input type="range" min="0" max={currentStats.gdp * 0.20} value={allocations.educationRd} onChange={e => setAllocations({...allocations, educationRd: Number(e.target.value)})} className="w-full accent-[#2A9D8F] cursor-pointer" />
+                    <div className="text-[10px] text-[#264653]">Накапливает человеческий капитал на 4–5 раунды.</div>
+                  </div>
+                  <div>
+                    <div className="flex justify-between font-bold"><span>Медицина и Соцзащита</span><span>${allocations.healthcareSocial}M</span></div>
+                    <input type="range" min="0" max={currentStats.gdp * 0.25} value={allocations.healthcareSocial} onChange={e => setAllocations({...allocations, healthcareSocial: Number(e.target.value)})} className="w-full accent-[#1E1E1E] cursor-pointer" />
+                    <div className="text-[10px] text-[#264653]">Удерживает доверие общества во время кризисов.</div>
+                  </div>
+                  <div>
+                    <div className="flex justify-between font-bold"><span>Выплата долга</span><span className={allocations.debtServicing < preview.mandatoryInterestDue ? 'text-[#E04F3E]' : 'text-[#2A9D8F]'}>${allocations.debtServicing}M</span></div>
+                    <input type="range" min="0" max={Math.max(preview.mandatoryInterestDue * 2, 200)} value={allocations.debtServicing} onChange={e => setAllocations({...allocations, debtServicing: Number(e.target.value)})} className="w-full accent-[#1E1E1E] cursor-pointer" />
+                    <div className="text-[10px] text-[#264653]">Обязательный процент: ${preview.mandatoryInterestDue}M.</div>
+                  </div>
+                </div>
               </div>
-              <div className="p-4 space-y-4 font-mono text-xs">
-                <div>
-                  <div className="flex justify-between font-bold"><span>Infrastructure</span><span>${allocations.infrastructure}M</span></div>
-                  <input type="range" min="0" max={currentStats.gdp * 0.25} value={allocations.infrastructure} onChange={e => setAllocations({...allocations, infrastructure: Number(e.target.value)})} className="w-full accent-[#1E1E1E]" />
-                </div>
-                <div>
-                  <div className="flex justify-between font-bold"><span>Education & R&D</span><span className="text-[#2A9D8F]">${allocations.educationRd}M</span></div>
-                  <input type="range" min="0" max={currentStats.gdp * 0.20} value={allocations.educationRd} onChange={e => setAllocations({...allocations, educationRd: Number(e.target.value)})} className="w-full accent-[#2A9D8F]" />
-                </div>
-                <div>
-                  <div className="flex justify-between font-bold"><span>Healthcare & Social</span><span>${allocations.healthcareSocial}M</span></div>
-                  <input type="range" min="0" max={currentStats.gdp * 0.25} value={allocations.healthcareSocial} onChange={e => setAllocations({...allocations, healthcareSocial: Number(e.target.value)})} className="w-full accent-[#1E1E1E]" />
-                </div>
-                <div>
-                  <div className="flex justify-between font-bold"><span>Debt Servicing</span><span>${allocations.debtServicing}M</span></div>
-                  <input type="range" min="0" max={Math.max(preview.mandatoryInterestDue * 2, 200)} value={allocations.debtServicing} onChange={e => setAllocations({...allocations, debtServicing: Number(e.target.value)})} className="w-full accent-[#1E1E1E]" />
-                </div>
-                <div className="pt-2 border-t border-[#1E1E1E] text-[#264653]">
-                  <div>Total Outlays: <strong>${preview.totalExpenditure}M</strong></div>
-                  <div>Balance: <strong className={preview.fiscalBalance >= 0 ? 'text-[#2A9D8F]' : 'text-[#E04F3E]'}>${preview.fiscalBalance}M</strong></div>
-                </div>
+
+              <div className="p-3 bg-[#F7F4EB] border-t border-[#1E1E1E] font-mono text-xs space-y-1">
+                <div className="flex justify-between text-[#264653]"><span>Всего расходов:</span><span className="font-bold text-[#E04F3E]">${preview.totalExpenditure}M</span></div>
+                <div className="flex justify-between text-[#264653]"><span>Сальдо бюджета:</span><span className={`font-bold ${preview.fiscalBalance >= 0 ? 'text-[#2A9D8F]' : 'text-[#E04F3E]'}`}>{preview.fiscalBalance >= 0 ? '+' : ''}${preview.fiscalBalance}M</span></div>
               </div>
+            </div>
+          </div>
+
+          {/* LIVE COHORT STANDINGS STRIP */}
+          <div className="border border-[#1E1E1E] bg-[#FFFFFF] p-4 shadow-brutal">
+            <div className="flex justify-between items-center border-b border-[#1E1E1E] pb-2 mb-3">
+              <span className="font-mono font-bold text-xs uppercase text-[#1E1E1E]">
+                📊 Живая таблица команд в комнате [{roomCode}]
+              </span>
+              <span className="text-[10px] font-mono text-[#264653]">Синхронизируется при каждом ходе</span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 font-mono text-xs">
+              {sortedTeams.map((team, idx) => (
+                <div
+                  key={team.id}
+                  className={`border border-[#1E1E1E] p-2 flex justify-between items-center ${
+                    team.id === myId ? 'bg-[#E9C46A]/20 ring-1 ring-[#1E1E1E]' : 'bg-[#F7F4EB]'
+                  }`}
+                >
+                  <div>
+                    <div className="font-bold text-[#1E1E1E]">
+                      #{idx + 1} {team.name} {team.id === myId && '(Вы)'}
+                    </div>
+                    <div className="text-[10px] text-[#264653]">
+                      Рнд {team.round || 1} • Долг: {team.debtToGdp}%
+                    </div>
+                  </div>
+
+                  <div className="text-right">
+                    <div className="font-extrabold text-[#1E1E1E]">${team.treasury}M</div>
+                    <span className={`text-[9px] font-bold px-1 uppercase text-white ${
+                      team.status === 'SURPLUS' ? 'bg-[#2A9D8F]' : 'bg-[#E04F3E]'
+                    }`}>
+                      {team.status || 'SURPLUS'}
+                    </span>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 
           {/* SHOCK MODAL */}
           {viewMode === 'SHOCK_MODAL' && (
-            <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
+            <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 animate-in fade-in">
               <div className="bg-white border-2 border-[#1E1E1E] max-w-xl w-full p-6 shadow-brutal-lg space-y-4">
-                <div className="bg-[#E04F3E] text-white p-2 font-mono font-bold text-xs uppercase">{currentShock.fiscalYearLabel} • {currentShock.title}</div>
-                <p className="font-serif italic text-xs text-[#264653] bg-[#F7F4EB] p-3 border border-[#1E1E1E]">"{currentShock.context}"</p>
+                <div className="bg-[#E04F3E] text-white p-2.5 font-mono font-bold text-xs uppercase">
+                  {currentShock.fiscalYearLabel} • {currentShock.title}
+                </div>
+                <p className="font-serif italic text-xs text-[#264653] bg-[#F7F4EB] p-3 border border-[#1E1E1E]">
+                  "{currentShock.context}"
+                </p>
                 <div className="space-y-2">
                   {currentShock.options.map(opt => (
-                    <div key={opt.id} onClick={() => setSelectedShockId(opt.id)} className={`cursor-pointer border border-[#1E1E1E] p-3 text-xs ${selectedShockId === opt.id ? 'bg-[#E9C46A]/30 shadow-brutal font-bold' : ''}`}>
-                      <div className="font-mono">[{opt.id}] {opt.label}</div>
-                      <div className="text-[#264653] font-normal mt-1">{opt.description}</div>
+                    <div
+                      key={opt.id}
+                      onClick={() => setSelectedShockId(opt.id)}
+                      className={`cursor-pointer border border-[#1E1E1E] p-3 text-xs transition ${
+                        selectedShockId === opt.id ? 'bg-[#E9C46A]/30 shadow-brutal font-bold ring-1 ring-[#1E1E1E]' : 'hover:bg-[#FAF8F2]'
+                      }`}
+                    >
+                      <div className="font-mono text-[#1E1E1E]">[{opt.id}] {opt.label}</div>
+                      <div className="text-[#264653] font-normal mt-1 leading-relaxed">{opt.description}</div>
                     </div>
                   ))}
                 </div>
-                <div className="flex justify-between pt-2">
-                  <button onClick={() => setViewMode('DASHBOARD')} className="border border-[#1E1E1E] px-4 py-2 font-mono text-xs font-bold">← Revise Sliders</button>
-                  <button onClick={handleConfirmShock} className="bg-[#1E1E1E] text-white px-6 py-2 font-mono text-xs font-bold uppercase shadow-brutal">Execute Fiscal Year</button>
+                <div className="flex justify-between pt-2 border-t border-[#1E1E1E]">
+                  <button onClick={() => setViewMode('DASHBOARD')} className="border border-[#1E1E1E] px-4 py-2 font-mono text-xs font-bold uppercase hover:bg-slate-100">
+                    ← Изменить ползунки
+                  </button>
+                  <button onClick={handleConfirmShock} className="bg-[#1E1E1E] text-white px-6 py-2 font-mono text-xs font-bold uppercase shadow-brutal hover:bg-[#264653]">
+                    Применить решение года →
+                  </button>
                 </div>
               </div>
             </div>
           )}
 
-          {/* ROUND FEEDBACK */}
+          {/* ROUND FEEDBACK REPORT */}
           {viewMode === 'ROUND_FEEDBACK' && (
-            <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
+            <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 animate-in fade-in">
               <div className="bg-white border-2 border-[#1E1E1E] max-w-xl w-full p-6 shadow-brutal-lg space-y-4">
-                <div className="bg-[#1E1E1E] text-white p-2 font-mono font-bold text-xs uppercase">Fiscal Year {currentStats.round - 1} Report</div>
-                <div className="border border-[#1E1E1E] bg-[#F7F4EB] p-3 font-mono text-xs flex justify-between">
-                  <span>Treasury Capital: <strong>${currentStats.treasury}M</strong></span>
-                  <span className={currentStats.budgetBalance >= 0 ? 'text-[#2A9D8F] font-bold' : 'text-[#E04F3E] font-bold'}>{currentStats.budgetBalance >= 0 ? 'SURPLUS' : 'DEFICIT'}</span>
+                <div className="bg-[#1E1E1E] text-white p-2.5 font-mono font-bold text-xs uppercase flex justify-between">
+                  <span>Отчет по итогам {currentStats.round - 1} финансового года</span>
+                  <span className="text-[#E9C46A]">Результат зафиксирован</span>
+                </div>
+                <div className="border border-[#1E1E1E] bg-[#F7F4EB] p-3 font-mono text-xs flex justify-between items-center">
+                  <div>
+                    <span className="text-[#264653] uppercase text-[10px]">Капитал казначейства:</span>
+                    <div className="text-xl font-extrabold text-[#1E1E1E]">${currentStats.treasury}M</div>
+                  </div>
+                  <span className={`px-2 py-0.5 text-xs font-bold uppercase text-white ${
+                    currentStats.budgetBalance >= 0 ? 'bg-[#2A9D8F]' : 'bg-[#E04F3E]'
+                  }`}>
+                    {currentStats.budgetBalance >= 0 ? 'SURPLUS' : 'DEFICIT'} (${currentStats.budgetBalance}M)
+                  </span>
                 </div>
                 <div className="space-y-2 text-xs">
                   {lastRoundExplanations.map((exp, i) => (
-                    <div key={i} className="border border-[#1E1E1E] p-2 bg-white flex gap-2">
-                      <span className="text-[#2A9D8F] font-bold">✓</span>
+                    <div key={i} className="border border-[#1E1E1E] p-2.5 bg-white flex gap-2 items-start leading-relaxed">
+                      <span className="text-[#2A9D8F] font-bold text-sm">✓</span>
                       <span>{exp}</span>
                     </div>
                   ))}
                 </div>
-                <div className="flex justify-end pt-2">
-                  <button onClick={handleNext} className="bg-[#1E1E1E] text-white px-6 py-2 font-mono text-xs font-bold uppercase shadow-brutal">
-                    {currentStats.round > 5 ? 'View Final Assessment' : `Proceed to FY ${currentStats.round}`} →
+                <div className="flex justify-end pt-2 border-t border-[#1E1E1E]">
+                  <button onClick={handleNext} className="bg-[#1E1E1E] text-white px-6 py-2 font-mono text-xs font-bold uppercase shadow-brutal hover:bg-[#264653]">
+                    {currentStats.round > 5 ? 'Перейти к итоговому рейтингу' : `Перейти к ${currentStats.round} году`} →
                   </button>
                 </div>
               </div>
